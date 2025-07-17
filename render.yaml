@@ -1,6 +1,6 @@
 services:
   # Baza danych PostgreSQL
-  - type: psql
+  - type: postgres
     name: family-db
     plan: free
 
@@ -9,14 +9,14 @@ services:
     name: backend
     plan: free
     runtime: node
-    repo: https://github.com/xlunix221/system-kontraktow-render # WAŻNE: Podmień na swój link!
+    repo: https://github.com/xlunix221/system-kontraktow-render 
     rootDir: backend
     buildCommand: npm install
     startCommand: node server.js
     envVars:
       - key: DATABASE_URL
         fromService:
-          type: psql
+          type: postgres
           name: family-db
           property: internalConnectionString
       - fromSecretFile:
@@ -27,7 +27,7 @@ services:
   - type: static
     name: frontend
     plan: free
-    repo: https://github.com/xlunix221/system-kontraktow-render # WAŻNE: Podmień na swój link!
+    repo: https://github.com/xlunix221/system-kontraktow-render
     rootDir: frontend
     buildCommand: npm run build
     publishDir: build
