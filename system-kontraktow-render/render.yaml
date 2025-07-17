@@ -34,7 +34,7 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://YOUR_BACKEND_SERVICE_NAME.onrender.com/api/* # WAŻNE: Podmień na nazwę swojego backendu!
+        destination: https://backend.onrender.com # Render automatycznie podmieni to na właściwy adres
       - type: rewrite
         source: /*
         destination: /index.html
