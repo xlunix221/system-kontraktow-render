@@ -358,3 +358,12 @@ export default function App() {
   const { users, contracts, contractConfig, availableRoles } = appData;
   const activeUser = users.find(u => u.id === activeThreadUserId);
   const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
+
+  return (
+    <div className="flex h-screen font-sans">
+      <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} onSetView={setView} availableRoles={availableRoles} />
+      {view === 'threads' && <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUser} contractConfig={contractConfig} availableRoles={availableRoles} />}
+      {view === 'settings' && currentUser.role === 'Lider' && <SettingsView users={users} contractConfig={contractConfig} availableRoles={availableRoles} onSave={handleSaveSettings} />}
+    </div>
+  );
+}
