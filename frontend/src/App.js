@@ -189,7 +189,7 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
                         </div>
                         {localUsers.map(user => (
                             <div key={user.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                                <input type="text" placeholder="Nickname" value={user.nickname} onChange={(e) => handleUserChange(user.id, 'nickname', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50" />
+                                <input type="text" placeholder="Nickname" value={user.nickname} onChange={(e) => handleUserChange(user.id, 'nickname', e.target.value)} disabled={user.role === 'Lider' && !user.id.toString().startsWith('new-')} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50" />
                                 <input type="text" placeholder="Static ID" value={user.staticid} onChange={(e) => handleUserChange(user.id, 'staticid', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
                                 <input type="text" placeholder="Nowe hasło (zostaw puste, by nie zmieniać)" onChange={(e) => handleUserChange(user.id, 'password', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
                                 <select value={user.role} onChange={(e) => handleUserChange(user.id, 'role', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50 capitalize">
@@ -358,12 +358,3 @@ export default function App() {
   const { users, contracts, contractConfig, availableRoles } = appData;
   const activeUser = users.find(u => u.id === activeThreadUserId);
   const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
-
-  return (
-    <div className="flex h-screen font-sans">
-      <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} onSetView={setView} availableRoles={availableRoles} />
-      {view === 'threads' && <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUser} contractConfig={contractConfig} availableRoles={availableRoles} />}
-      {view === 'settings' && currentUser.role === 'Lider' && <SettingsView users={users} contractConfig={contractConfig} availableRoles={availableRoles} onSave={handleSaveSettings} />}
-    </div>
-  );
-}
