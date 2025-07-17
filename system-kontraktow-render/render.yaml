@@ -9,7 +9,7 @@ services:
     name: backend
     plan: free
     runtime: node
-    repo: https://github.com/YOUR_USERNAME/YOUR_REPO_NAME # WAŻNE: Podmień na swój link!
+    repo: https://github.com/xlunix221/system-kontraktow-render # WAŻNE: Podmień na swój link!
     rootDir: backend
     buildCommand: npm install
     startCommand: node server.js
@@ -27,7 +27,7 @@ services:
   - type: static
     name: frontend
     plan: free
-    repo: https://github.com/YOUR_USERNAME/YOUR_REPO_NAME # WAŻNE: Podmień na swój link!
+    repo: https://github.com/xlunix221/system-kontraktow-render # WAŻNE: Podmień na swój link!
     rootDir: frontend
     buildCommand: npm run build
     publishDir: build
