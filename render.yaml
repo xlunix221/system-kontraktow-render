@@ -1,0 +1,40 @@
+services:
+  # Baza danych PostgreSQL
+  - type: postgres
+    name: family-db
+    plan: free
+
+  # Backend (Node.js/Express)
+  - type: web
+    name: backend
+    plan: free
+    runtime: node
+    repo: https://github.com/xlunix221/system-kontraktow-render 
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: postgres
+          name: family-db
+          property: internalConnectionString
+      - fromSecretFile:
+          name: .env
+          path: .env
+
+  # Frontend (React)
+  - type: static
+    name: frontend
+    plan: free
+    repo: https://github.com/xlunix221/system-kontraktow-render
+    rootDir: frontend
+    buildCommand: npm run build
+    publishDir: build
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://backend.onrender.com # Render automatycznie podmieni to na właściwy adres
+      - type: rewrite
+        source: /*
+        destination: /index.html
