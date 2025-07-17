@@ -102,7 +102,10 @@ app.post('/api/settings', authenticateToken, async (req, res) => {
         // Usuwanie użytkowników
         for (const dbId of dbUserIds) {
             if (!incomingUserIds.includes(dbId)) {
-                await client.query('DELETE FROM users WHERE id = $1', [dbId]);
+                const userToDelete = (await client.query('SELECT role FROM users WHERE id = $1', [dbId])).rows[0];
+                if (userToDelete.role !== 'Lider') {
+                    await client.query('DELETE FROM users WHERE id = $1', [dbId]);
+                }
             }
         }
 
