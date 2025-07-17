@@ -95,17 +95,29 @@ app.post('/api/settings', authenticateToken, async (req, res) => {
     try {
         await client.query('BEGIN');
 
+        const dbUsersResult = await client.query('SELECT id FROM users');
+        const dbUserIds = dbUsersResult.rows.map(u => u.id);
+        const incomingUserIds = users.filter(u => typeof u.id === 'number').map(u => u.id);
+
+        // Usuwanie użytkowników
+        for (const dbId of dbUserIds) {
+            if (!incomingUserIds.includes(dbId)) {
+                await client.query('DELETE FROM users WHERE id = $1', [dbId]);
+            }
+        }
+
+        // Aktualizacja i dodawanie użytkowników
         for (const user of users) {
              if (user.id.toString().startsWith('new-')) {
-                const hashedPassword = await bcrypt.hash(user.password, 10);
+                const hashedPassword = await bcrypt.hash(user.password || '1234', 10);
                 await client.query('INSERT INTO users (nickname, staticid, role, password) VALUES ($1, $2, $3, $4)', 
                 [user.nickname, user.staticid, user.role, hashedPassword]);
             } else {
-                if (user.password) { // Zmień hasło tylko jeśli zostało podane
+                if (user.password && user.password.length > 0) {
                     const hashedPassword = await bcrypt.hash(user.password, 10);
                     await client.query('UPDATE users SET staticid = $1, role = $2, password = $3 WHERE id = $4', 
                     [user.staticid, user.role, hashedPassword, user.id]);
-                } else { // W przeciwnym razie zaktualizuj tylko resztę
+                } else {
                     await client.query('UPDATE users SET staticid = $1, role = $2 WHERE id = $3', 
                     [user.staticid, user.role, user.id]);
                 }
