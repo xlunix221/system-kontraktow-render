@@ -147,7 +147,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
         onClose={() => setRejectionModal({ isOpen: false, contractId: null })}
         onSubmit={handleConfirmRejection}
       />
-      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticId}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contractType}</h3>{contract.detailedDescription && (<p className="mt-1 text-sm text-gray-300">{contract.detailedDescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isApproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutAmount.toLocaleString('pl-PL')}</div>)}{contract.isRejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageUrl} alt={`Dowód dla: ${contract.contractType}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isRejected && contract.rejectionReason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionReason}</p></div>)}{canPerformActions && !contract.isApproved && !contract.isRejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contractType)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canApprove} canReject={currentUserRoleConfig.canReject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
+      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{canPerformActions && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canApprove} canReject={currentUserRoleConfig.canReject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
     </>
   );
 };
@@ -190,7 +190,7 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
                         {localUsers.map(user => (
                             <div key={user.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                                 <input type="text" placeholder="Nickname" value={user.nickname} onChange={(e) => handleUserChange(user.id, 'nickname', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50" />
-                                <input type="text" placeholder="Static ID" value={user.staticId} onChange={(e) => handleUserChange(user.id, 'staticId', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
+                                <input type="text" placeholder="Static ID" value={user.staticid} onChange={(e) => handleUserChange(user.id, 'staticid', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
                                 <input type="text" placeholder="Hasło" value={user.password} onChange={(e) => handleUserChange(user.id, 'password', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
                                 <select value={user.role} onChange={(e) => handleUserChange(user.id, 'role', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50 capitalize">
                                     {localAvailableRoles.map(role => <option key={role.name} value={role.name}>{role.name}</option>)}
@@ -207,10 +207,10 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
                         {localAvailableRoles.map((role, index) => (
                             <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                                 <input type="text" value={role.name} onChange={(e) => handleRolePropChange(index, 'name', e.target.value)} disabled={role.name === 'Lider'} className="flex-1 px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50 capitalize" />
-                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canViewThreads} onChange={(e) => handleRolePropChange(index, 'canViewThreads', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Widzi wątki</span></label>
-                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.isThreadVisible} onChange={(e) => handleRolePropChange(index, 'isThreadVisible', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Wątek widoczny</span></label>
-                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canApprove} onChange={(e) => handleRolePropChange(index, 'canApprove', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Może zatwierdzać</span></label>
-                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canReject} onChange={(e) => handleRolePropChange(index, 'canReject', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Może odrzucać</span></label>
+                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canviewthreads} onChange={(e) => handleRolePropChange(index, 'canviewthreads', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Widzi wątki</span></label>
+                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.isthreadvisible} onChange={(e) => handleRolePropChange(index, 'isthreadvisible', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Wątek widoczny</span></label>
+                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canapprove} onChange={(e) => handleRolePropChange(index, 'canapprove', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Może zatwierdzać</span></label>
+                                <label className="flex items-center text-sm text-gray-300"><input type="checkbox" checked={role.canreject} onChange={(e) => handleRolePropChange(index, 'canreject', e.target.checked)} disabled={role.name === 'Lider'} className="w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 disabled:opacity-50" /><span className="ml-2">Może odrzucać</span></label>
                                 <button onClick={() => handleRemoveRole(index)} disabled={role.name === 'Lider'} className="p-1 text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed md:col-start-5"><TrashIcon /></button>
                             </div>
                         ))}
@@ -237,157 +237,98 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
 };
 
 export default function App() {
-  const [users, setUsers] = useState([]);
-  const [contracts, setContracts] = useState([]);
-  const [contractConfig, setContractConfig] = useState([]);
-  const [availableRoles, setAvailableRoles] = useState([]);
-  
+  const [appData, setAppData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentUserData, setCurrentUserData] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isLoading, setIsLoading] = useState(true);
   const [activeThreadUserId, setActiveThreadUserId] = useState(null);
   const [view, setView] = useState('threads');
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Nasłuchiwanie na zmiany stanu logowania
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      if (!user) {
+  const API_URL = process.env.REACT_APP_API_URL || '';
+
+  const fetchData = async () => {
+    if (!token) {
         setIsLoading(false);
-        setCurrentUserData(null);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  // Nasłuchiwanie na zmiany w bazie danych w czasie rzeczywistym
-  useEffect(() => {
-    if (currentUser) {
-      const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-        const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setUsers(usersList);
-        // Znajdź i ustaw dane zalogowanego użytkownika
-        const userData = usersList.find(u => u.id === currentUser.uid);
-        setCurrentUserData(userData);
-      });
-
-      const unsubContracts = onSnapshot(collection(db, "contracts"), (snapshot) => {
-        const contractsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setContracts(contractsList);
-      });
-
-      const unsubSettings = onSnapshot(doc(db, "settings", "config"), (doc) => {
-        if (doc.exists()) {
-          const settingsData = doc.data();
-          setContractConfig(settingsData.contractConfig || []);
-          setAvailableRoles(settingsData.availableRoles || []);
-        }
-      });
-      
-      setIsLoading(false);
-
-      return () => {
-        unsubUsers();
-        unsubContracts();
-        unsubSettings();
-      };
+        return;
     }
-  }, [currentUser]);
+    try {
+      const response = await fetch(`${API_URL}/api/data`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setAppData(data);
+      
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      const userFromToken = data.users.find(u => u.id === decodedToken.id);
+      setCurrentUser(userFromToken);
 
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+      handleLogout();
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(() => {
+        if(token) fetchData();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [token]);
+  
   const handleLogin = async (nickname, password) => {
-    // W Firebase logujemy się za pomocą emaila, więc tworzymy go z nicku
-    const email = `${nickname.toLowerCase().replace(/\s+/g, '')}@rodzina.com`;
-    return signInWithEmailAndPassword(auth, email, password);
+    const response = await fetch(`${API_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, password })
+    });
+    if (!response.ok) throw new Error('Login failed');
+    const { token: newToken, user } = await response.json();
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    setCurrentUser(user);
+    return true;
   };
 
   const handleLogout = () => {
-    signOut(auth);
+    localStorage.removeItem('token');
+    setToken(null);
+    setCurrentUser(null);
   };
 
   const handleAddContract = async (newContractData) => {
-    const { contractType, detailedDescription, imageFile } = newContractData;
-    // W prawdziwej aplikacji tutaj nastąpiłby upload pliku na serwer storage
-    // Dla uproszczenia używamy placeholdera
-    const imageUrl = 'https://placehold.co/800x400/1f2937/ffffff?text=Nowy+kontrakt';
-    
-    await addDoc(collection(db, "contracts"), {
-      userId: currentUser.uid,
-      userNickname: currentUserData.nickname,
-      contractType,
-      detailedDescription,
-      imageUrl,
-      timestamp: new Date().toISOString(),
-      isApproved: false,
-      isRejected: false,
-      payoutAmount: null,
-      rejectionReason: null
-    });
+    // ...
   };
-
   const handleApproveContract = async (contractId, contractType) => {
-      const config = contractConfig.find(c => c.name === contractType);
-      const amount = config ? config.payout : 0;
-      const contractRef = doc(db, "contracts", contractId);
-      await updateDoc(contractRef, {
-        isApproved: true,
-        isRejected: false,
-        payoutAmount: amount
-      });
+    // ...
   };
-
   const handleRejectContract = async (contractId, reason) => {
-      const contractRef = doc(db, "contracts", contractId);
-      await updateDoc(contractRef, {
-        isRejected: true,
-        isApproved: false,
-        rejectionReason: reason
-      });
+    // ...
   };
-
   const handleSaveSettings = async (updatedUsers, updatedContractConfig, updatedAvailableRoles) => {
-      const batch = writeBatch(db);
-
-      // Aktualizacja ról użytkowników
-      updatedUsers.forEach(user => {
-        if (!user.id.startsWith('new-')) { // Tylko aktualizuj istniejących
-            const userRef = doc(db, "users", user.id);
-            batch.update(userRef, { 
-                staticId: user.staticId,
-                role: user.role
-                // Zmiana hasła i nicku wymagałaby ponownej autentykacji, więc pomijamy
-            });
-        } else {
-            // Logika dodawania nowego użytkownika (wymaga stworzenia konta w Authentication)
-            // To jest bardziej złożone i na razie pominiemy
-        }
-      });
-
-      // Zapisanie konfiguracji
-      const settingsRef = doc(db, "settings", "config");
-      batch.set(settingsRef, {
-          contractConfig: updatedContractConfig,
-          availableRoles: updatedAvailableRoles
-      });
-      
-      await batch.commit();
-      alert('Zmiany zostały zapisane!');
-      setView('threads');
+    // ...
   };
-
+  
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen bg-gray-800 text-white">Ładowanie...</div>;
   }
-
-  if (!currentUser || !currentUserData) { return <LoginPage onLogin={handleLogin} />; }
   
+  if (!currentUser || !appData) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  const { users, contracts, contractConfig, availableRoles } = appData;
   const activeUser = users.find(u => u.id === activeThreadUserId);
-  const activeContracts = contracts.filter(c => c.userId === activeThreadUserId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
 
   return (
     <div className="flex h-screen font-sans">
-      <Sidebar users={users} currentUser={currentUserData} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} onSetView={setView} availableRoles={availableRoles} />
-      {view === 'threads' && <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUserData} contractConfig={contractConfig} availableRoles={availableRoles} />}
-      {view === 'settings' && currentUserData.role === 'Lider' && <SettingsView users={users} contractConfig={contractConfig} availableRoles={availableRoles} onSave={handleSaveSettings} />}
+      <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} onSetView={setView} availableRoles={availableRoles} />
+      {view === 'threads' && <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUser} contractConfig={contractConfig} availableRoles={availableRoles} />}
+      {view === 'settings' && currentUser.role === 'Lider' && <SettingsView users={users} contractConfig={contractConfig} availableRoles={availableRoles} onSave={handleSaveSettings} />}
     </div>
   );
 }
