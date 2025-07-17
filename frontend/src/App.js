@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // --- IKONY ---
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
@@ -31,12 +31,12 @@ const LoginPage = ({ onLogin }) => {
 
 const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserId, onSetView, availableRoles }) => {
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
-  const canViewOtherThreads = currentUserRoleConfig?.canViewThreads || false;
+  const canViewOtherThreads = currentUserRoleConfig?.canviewthreads || false;
 
   const usersToDisplay = canViewOtherThreads
     ? users.filter(u => {
         const userRoleConfig = availableRoles.find(r => r.name === u.role);
-        return userRoleConfig?.isThreadVisible;
+        return userRoleConfig?.isthreadvisible;
       })
     : [currentUser];
 
@@ -129,7 +129,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
   if (!user) { return (<div className="flex-1 p-6 flex items-center justify-center text-gray-400">Wybierz wątek z listy lub przejdź do panelu zarządzania.</div>); }
   
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
-  const canPerformActions = currentUserRoleConfig?.canViewThreads || false;
+  const canPerformActions = currentUserRoleConfig?.canviewthreads || false;
 
   const handleOpenRejectModal = (contractId) => {
       setRejectionModal({ isOpen: true, contractId });
@@ -147,7 +147,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
         onClose={() => setRejectionModal({ isOpen: false, contractId: null })}
         onSubmit={handleConfirmRejection}
       />
-      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{canPerformActions && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canApprove} canReject={currentUserRoleConfig.canReject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
+      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{canPerformActions && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
     </>
   );
 };
@@ -191,7 +191,7 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
                             <div key={user.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                                 <input type="text" placeholder="Nickname" value={user.nickname} onChange={(e) => handleUserChange(user.id, 'nickname', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50" />
                                 <input type="text" placeholder="Static ID" value={user.staticid} onChange={(e) => handleUserChange(user.id, 'staticid', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
-                                <input type="text" placeholder="Hasło" value={user.password} onChange={(e) => handleUserChange(user.id, 'password', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
+                                <input type="text" placeholder="Nowe hasło (zostaw puste, by nie zmieniać)" onChange={(e) => handleUserChange(user.id, 'password', e.target.value)} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md" />
                                 <select value={user.role} onChange={(e) => handleUserChange(user.id, 'role', e.target.value)} disabled={user.role === 'Lider'} className="px-2 py-1 text-sm text-white bg-gray-700 border border-gray-600 rounded-md disabled:opacity-50 capitalize">
                                     {localAvailableRoles.map(role => <option key={role.name} value={role.name}>{role.name}</option>)}
                                 </select>
@@ -244,9 +244,9 @@ export default function App() {
   const [activeThreadUserId, setActiveThreadUserId] = useState(null);
   const [view, setView] = useState('threads');
 
-  const API_URL = process.env.REACT_APP_API_URL || '';
+  const API_URL = ''; // Na Render nie potrzebujemy tego, bo używamy rewrite rules
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!token) {
         setIsLoading(false);
         return;
@@ -255,6 +255,10 @@ export default function App() {
       const response = await fetch(`${API_URL}/api/data`, {
           headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (response.status === 401 || response.status === 403) {
+        handleLogout();
+        return;
+      }
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setAppData(data);
@@ -269,15 +273,11 @@ export default function App() {
     } finally {
         setIsLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(() => {
-        if(token) fetchData();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [token]);
+  }, [fetchData]);
   
   const handleLogin = async (nickname, password) => {
     const response = await fetch(`${API_URL}/api/login`, {
@@ -300,16 +300,51 @@ export default function App() {
   };
 
   const handleAddContract = async (newContractData) => {
-    // ...
+    const { contractType, detailedDescription } = newContractData;
+    await fetch(`${API_URL}/api/contracts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ 
+            userId: currentUser.id,
+            userNickname: currentUser.nickname,
+            contractType, 
+            detailedDescription, 
+            imageUrl: 'https://placehold.co/800x400/1f2937/ffffff?text=Nowy+kontrakt' 
+        }),
+    });
+    fetchData();
   };
   const handleApproveContract = async (contractId, contractType) => {
-    // ...
+    const config = appData.contractConfig.find(c => c.name === contractType);
+    const amount = config ? config.payout : 0;
+    await fetch(`${API_URL}/api/contracts/${contractId}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ payoutAmount: amount })
+    });
+    fetchData();
   };
   const handleRejectContract = async (contractId, reason) => {
-    // ...
+    await fetch(`${API_URL}/api/contracts/${contractId}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ rejectionReason: reason })
+    });
+    fetchData();
   };
   const handleSaveSettings = async (updatedUsers, updatedContractConfig, updatedAvailableRoles) => {
-    // ...
+    await fetch(`${API_URL}/api/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+            users: updatedUsers,
+            contractConfig: updatedContractConfig,
+            availableRoles: updatedAvailableRoles,
+        })
+    });
+    alert('Zmiany zostały zapisane!');
+    fetchData();
+    setView('threads');
   };
   
   if (isLoading) {
