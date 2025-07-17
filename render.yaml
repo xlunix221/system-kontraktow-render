@@ -1,0 +1,40 @@
+services:
+  # Baza danych PostgreSQL
+  - type: psql
+    name: family-db
+    plan: free
+
+  # Backend (Node.js/Express)
+  - type: web
+    name: backend
+    plan: free
+    runtime: node
+    repo: https://github.com/YOUR_USERNAME/YOUR_REPO_NAME # WAŻNE: Podmień na swój link!
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: family-db
+          property: internalConnectionString
+      - fromSecretFile:
+          name: .env
+          path: .env
+
+  # Frontend (React)
+  - type: static
+    name: frontend
+    plan: free
+    repo: https://github.com/YOUR_USERNAME/YOUR_REPO_NAME # WAŻNE: Podmień na swój link!
+    rootDir: frontend
+    buildCommand: npm run build
+    publishDir: build
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://YOUR_BACKEND_SERVICE_NAME.onrender.com/api/* # WAŻNE: Podmień na nazwę swojego backendu!
+      - type: rewrite
+        source: /*
+        destination: /index.html
