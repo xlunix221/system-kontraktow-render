@@ -158,7 +158,7 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
     const [localAvailableRoles, setLocalAvailableRoles] = useState(JSON.parse(JSON.stringify(availableRoles)));
 
     const handleUserChange = (userId, field, value) => { setLocalUsers(localUsers.map(u => u.id === userId ? {...u, [field]: value} : u)); };
-    const handleAddUser = () => { setLocalUsers([...localUsers, { id: `new-${Date.now()}`, nickname: '', staticId: '', role: 'member', password: '' }]); };
+    const handleAddUser = () => { setLocalUsers([...localUsers, { id: `new-${Date.now()}`, nickname: '', staticid: '', role: 'member', password: '' }]); };
     const handleRemoveUser = (userId) => { setLocalUsers(localUsers.filter(u => u.id !== userId)); };
 
     const handleContractChange = (index, field, value) => { const updatedConfig = [...localContractConfig]; updatedConfig[index][field] = field === 'payout' ? parseInt(value, 10) || 0 : value; setLocalContractConfig(updatedConfig); };
@@ -166,7 +166,7 @@ const SettingsView = ({ users, contractConfig, availableRoles, onSave }) => {
     const handleRemoveContract = (index) => { setLocalContractConfig(localContractConfig.filter((_, i) => i !== index)); };
     
     const handleRolePropChange = (index, prop, value) => { const updatedRoles = [...localAvailableRoles]; updatedRoles[index][prop] = value; setLocalAvailableRoles(updatedRoles); };
-    const handleAddRole = () => { setLocalAvailableRoles([...localAvailableRoles, { name: 'Nowa rola', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }]); };
+    const handleAddRole = () => { setLocalAvailableRoles([...localAvailableRoles, { name: 'Nowa rola', canviewthreads: false, isthreadvisible: true, canapprove: false, canreject: false }]); };
     const handleRemoveRole = (indexToRemove) => {
         const roleToRemove = localAvailableRoles[indexToRemove];
         if (roleToRemove.name === 'Lider') { alert('Nie można usunąć roli "Lider"!'); return; }
