@@ -24,7 +24,7 @@ const initialConfig = {
   users: [
     { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: '1234' },
     { nickname: 'Scott Boner', staticId: '83913', role: 'V-lider', password: '1234' },
-    { nickname: 'Scott Boner1', staticId: '83913', role: 'V-lider', password: '1234' },
+    { nickname: 'Scott Boner1', staticId: '83913', role: 'Member', password: '1234' },
     // Aby dodać nowego użytkownika, skopiuj powyższą linijkę i zmień dane.
     // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
   ],
@@ -32,8 +32,8 @@ const initialConfig = {
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
       { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'V-lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
+      { name: 'V-lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
