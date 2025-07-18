@@ -23,7 +23,7 @@ const initialConfig = {
   // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
   users: [
     { nickname: 'Gregory Tyler', staticId: '24032', role: 'Lider', password: '1512' },
-    { nickname: 'Scott Boner', staticId: '83913', role: 'Lider', password: '1234' },
+    { nickname: 'Scott Boner', staticId: '83913', role: 'V-lider', password: '1234' },
     // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
   ],
 
