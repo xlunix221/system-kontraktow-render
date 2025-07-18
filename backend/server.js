@@ -31,10 +31,13 @@ const initialConfig = {
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
-      { name: 'Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Zarząd', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Obywatel', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
+      { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
+      { name: '[4] OG Member', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: '[3] Member +', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: '[2] Member', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: '[1] New Member', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
