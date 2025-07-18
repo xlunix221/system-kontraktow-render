@@ -46,21 +46,22 @@ const initialConfig = {
   ],
 
   // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
-  changelog: [
-     { 
-      version: 'v1.5.0', 
-      date: '2025-07-18', 
-      changes: [
-        'Dodano nowe role!',
-      ] 
-    { 
-      version: 'v1.4.0', 
-      date: '2025-07-18', 
-      changes: [
-        'Dodano animacje wysuwania sekcji w panelu bocznym.',
-        'Wyświetlanie ostatniego changeloga na stronie logowania.',
-      ] 
-    },
+ changelog: [
+  { 
+    version: 'v1.5.0', 
+    date: '2025-07-18', 
+    changes: [
+      'Dodano nowe role!',
+    ] 
+  }, 
+  { 
+    version: 'v1.4.0', 
+    date: '2025-07-18', 
+    changes: [
+      'Dodano animacje wysuwania sekcji w panelu bocznym.',
+      'Wyświetlanie ostatniego changeloga na stronie logowania.',
+    ] 
+  },
     { 
       version: 'v1.3.0', 
       date: '2025-07-18', 
