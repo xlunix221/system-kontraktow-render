@@ -46,6 +46,28 @@ const initialConfig = {
     { name: 'Napad na sklep', payout: 10000 },
     { name: 'sigma', payout: 50000 },
     { name: 'Inne (opisz poniżej)', payout: 5000 },
+  ],
+
+  // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
+  changelog: [
+    { 
+      version: 'v1.1.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Dodano zwijaną listę wszystkich członków rodziny.',
+        'Wprowadzono zwijane sekcje w panelu bocznym dla lepszej organizacji.',
+        'Dodano ten changelog, aby śledzić zmiany w aplikacji!'
+      ] 
+    },
+    { 
+      version: 'v1.0.0', 
+      date: '2025-07-17', 
+      changes: [
+        'Pierwsza wersja systemu kontraktów.',
+        'Logowanie, dodawanie i przeglądanie kontraktów.',
+        'System ról i uprawnień.'
+      ] 
+    },
   ]
 };
 
@@ -144,7 +166,7 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/data', authenticateToken, async (req, res) => {
     try {
-        const usersRes = await db.query("SELECT id, nickname, staticid, role FROM users");
+        const usersRes = await db.query("SELECT id, nickname, staticid, role FROM users ORDER BY nickname ASC");
         const contractsRes = await db.query("SELECT * FROM contracts ORDER BY timestamp DESC");
         const contractConfigRes = await db.query("SELECT * FROM contract_config");
         const availableRolesRes = await db.query("SELECT * FROM available_roles");
@@ -154,6 +176,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
             contracts: contractsRes.rows,
             contractConfig: contractConfigRes.rows,
             availableRoles: availableRolesRes.rows,
+            changelog: initialConfig.changelog, // <-- DODANA LINIA
         });
     } catch (err) {
         res.status(500).send(err.message);
