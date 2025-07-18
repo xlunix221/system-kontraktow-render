@@ -265,6 +265,26 @@ app.put('/api/contracts/:id/:action', authenticateToken, async (req, res) => {
     }
 });
 
+// NOWY ENDPOINT
+app.delete('/api/contracts/:id', authenticateToken, async (req, res) => {
+    // Sprawdzamy, czy użytkownik ma uprawnienia do odrzucania (używamy tego samego uprawnienia do usuwania)
+    if (!req.user.permissions.canreject) {
+        return res.status(403).send('Brak uprawnień do usuwania kontraktów.');
+    }
+
+    const { id } = req.params;
+    try {
+        const deleteResult = await db.query('DELETE FROM contracts WHERE id = $1', [id]);
+        if (deleteResult.rowCount === 0) {
+            return res.status(404).send('Contract not found');
+        }
+        res.status(200).json({ success: true, message: 'Contract deleted successfully' });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+
 app.get('/api/images/:id', async (req, res) => {
     try {
         const { id } = req.params;
