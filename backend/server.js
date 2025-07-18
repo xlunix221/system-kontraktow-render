@@ -35,13 +35,14 @@ const initialConfig = {
     { nickname: 'test', staticId: '1111', role: '[1] New Member', password: '1111' },
   ],
   availableRoles: [
-    { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-    { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-    { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
-    { name: '[4] OG Member', priority: 4, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-    { name: '[3] Member +', priority: 5, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-    { name: '[2] Member', priority: 6, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-    { name: '[1] New Member', priority: 7, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+    // NOWA KOLUMNA: 'canDelete'
+    { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true, canDelete: true },
+    { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true, canDelete: true },
+    { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false, canDelete: false },
+    { name: '[4] OG Member', priority: 4, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false, canDelete: false },
+    { name: '[3] Member +', priority: 5, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false, canDelete: false },
+    { name: '[2] Member', priority: 6, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false, canDelete: false },
+    { name: '[1] New Member', priority: 7, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false, canDelete: false },
   ],
   contractConfig: [
     { name: 'Inne (opisz poniżej)', payout: 5000 },
@@ -112,7 +113,7 @@ const initializeDatabase = async () => {
           rejectionReason TEXT
       );
       CREATE TABLE contract_config (name TEXT PRIMARY KEY, payout REAL);
-      CREATE TABLE available_roles (name TEXT PRIMARY KEY, priority INTEGER, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN);
+      CREATE TABLE available_roles (name TEXT PRIMARY KEY, priority INTEGER, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN, canDelete BOOLEAN);
     `;
     await client.query(schema);
 
@@ -122,8 +123,8 @@ const initializeDatabase = async () => {
         [user.nickname, user.staticId, user.role, hashedPassword]);
     }
     for (const role of initialConfig.availableRoles) {
-        await client.query('INSERT INTO available_roles (name, priority, canViewThreads, isThreadVisible, canApprove, canReject) VALUES ($1, $2, $3, $4, $5, $6)',
-        [role.name, role.priority, role.canViewThreads, role.isThreadVisible, role.canApprove, role.canReject]);
+        await client.query('INSERT INTO available_roles (name, priority, canViewThreads, isThreadVisible, canApprove, canReject, canDelete) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [role.name, role.priority, role.canViewThreads, role.isThreadVisible, role.canApprove, role.canReject, role.canDelete]);
     }
     for (const config of initialConfig.contractConfig) {
         await client.query('INSERT INTO contract_config (name, payout) VALUES ($1, $2)', [config.name, config.payout]);
@@ -204,7 +205,6 @@ app.get('/api/data', authenticateToken, async (req, res) => {
             ORDER BY ar.priority ASC, u.nickname ASC;
         `;
         const usersRes = await db.query(usersQuery);
-        // Zmieniamy zapytanie, aby nie pobierać danych obrazu w tym miejscu
         const contractsRes = await db.query("SELECT id, userid, usernickname, contracttype, detaileddescription, timestamp, isapproved, isrejected, payoutamount, rejectionreason FROM contracts ORDER BY timestamp DESC");
         const contractConfigRes = await db.query("SELECT * FROM contract_config");
         const availableRolesRes = await db.query("SELECT * FROM available_roles");
@@ -265,10 +265,9 @@ app.put('/api/contracts/:id/:action', authenticateToken, async (req, res) => {
     }
 });
 
-// NOWY ENDPOINT
 app.delete('/api/contracts/:id', authenticateToken, async (req, res) => {
-    // Sprawdzamy, czy użytkownik ma uprawnienia do odrzucania (używamy tego samego uprawnienia do usuwania)
-    if (!req.user.permissions.canreject) {
+    // ZMIANA: Sprawdzamy nowe uprawnienie 'candelete'
+    if (!req.user.permissions.candelete) {
         return res.status(403).send('Brak uprawnień do usuwania kontraktów.');
     }
 
