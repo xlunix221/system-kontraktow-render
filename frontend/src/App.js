@@ -62,10 +62,10 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
 const ContractForm = ({ onAddContract, contractConfig }) => {
     const [contractType, setContractType] = useState(contractConfig.length > 0 ? contractConfig[0].name : '');
     const [detailedDescription, setDetailedDescription] = useState('');
-    const [imageFile, setImageFile] = useState(null);
-    const handleSubmit = (e) => { e.preventDefault(); if (contractType && imageFile) { onAddContract({ contractType, detailedDescription, imageFile }); setContractType(contractConfig[0].name); setDetailedDescription(''); setImageFile(null); e.target.reset(); } };
+    const [imageUrl, setImageUrl] = useState('');
+    const handleSubmit = (e) => { e.preventDefault(); if (contractType && imageUrl) { onAddContract({ contractType, detailedDescription, imageUrl }); setContractType(contractConfig[0].name); setDetailedDescription(''); setImageUrl(''); } };
     return (
-      <div className="p-4 bg-gray-700 border-t border-gray-600"><form onSubmit={handleSubmit} className="space-y-3"><div><label className="text-sm font-medium text-gray-300">Rodzaj kontraktu</label><select value={contractType} onChange={(e) => setContractType(e.target.value)} className="w-full px-3 py-2 mt-1 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">{contractConfig.map(config => (<option key={config.name} value={config.name}>{config.name}</option>))}</select></div><div><label className="text-sm font-medium text-gray-300">Dodatkowy opis (opcjonalnie)</label><textarea placeholder="Dodatkowe informacje, wyjaśnienia..." value={detailedDescription} onChange={(e) => setDetailedDescription(e.target.value)} rows="2" className="w-full px-3 py-2 mt-1 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div><div><label className="text-sm font-medium text-gray-300">Dowód (zrzut ekranu)</label><input type="file" accept="image/*" required onChange={(e) => setImageFile(e.target.files[0])} className="w-full mt-1 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" /></div><button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Dodaj dowód</button></form></div>
+      <div className="p-4 bg-gray-700 border-t border-gray-600"><form onSubmit={handleSubmit} className="space-y-3"><div><label className="text-sm font-medium text-gray-300">Rodzaj kontraktu</label><select value={contractType} onChange={(e) => setContractType(e.target.value)} className="w-full px-3 py-2 mt-1 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">{contractConfig.map(config => (<option key={config.name} value={config.name}>{config.name}</option>))}</select></div><div><label className="text-sm font-medium text-gray-300">Dodatkowy opis (opcjonalnie)</label><textarea placeholder="Dodatkowe informacje, wyjaśnienia..." value={detailedDescription} onChange={(e) => setDetailedDescription(e.target.value)} rows="2" className="w-full px-3 py-2 mt-1 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div><div><label className="text-sm font-medium text-gray-300">Link do zrzutu ekranu (np. z Imgur)</label><input type="text" placeholder="https://i.imgur.com/..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} required className="w-full px-3 py-2 mt-1 text-white bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div><button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Dodaj dowód</button></form></div>
     );
 };
 
@@ -78,29 +78,13 @@ const AdminActions = ({ onApprove, onReject, canApprove, canReject }) => (
 
 const RejectionModal = ({ isOpen, onClose, onSubmit }) => {
     const [reason, setReason] = useState('');
-
     if (!isOpen) return null;
-
-    const handleSubmit = () => {
-        if (reason.trim()) {
-            onSubmit(reason);
-            setReason('');
-        } else {
-            alert('Proszę podać powód odrzucenia.');
-        }
-    };
-
+    const handleSubmit = () => { if (reason.trim()) { onSubmit(reason); setReason(''); } else { alert('Proszę podać powód odrzucenia.'); } };
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
                 <h3 className="text-lg font-semibold text-white mb-4">Powód odrzucenia kontraktu</h3>
-                <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder="Wpisz powód..."
-                    rows="4"
-                    className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                ></textarea>
+                <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wpisz powód..." rows="4" className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                 <div className="mt-4 flex justify-end space-x-2">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">Anuluj</button>
                     <button onClick={handleSubmit} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Potwierdź odrzucenie</button>
@@ -110,148 +94,26 @@ const RejectionModal = ({ isOpen, onClose, onSubmit }) => {
     );
 };
 
-const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, currentUser, contractConfig, availableRoles }) => {
+const ImageModal = ({ imageUrl, onClose }) => {
+    if (!imageUrl) return null;
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={onClose}>
+            <img src={imageUrl} alt="Powiększony dowód" className="max-w-[90vw] max-h-[90vh] object-contain" />
+        </div>
+    );
+};
+
+const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, currentUser, contractConfig, availableRoles, onImageClick }) => {
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, contractId: null });
 
   if (!user) { return (<div className="flex-1 p-6 flex items-center justify-center text-gray-400">Wybierz wątek z listy.</div>); }
   
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
-  const canPerformActions = currentUserRoleConfig?.canviewthreads || false;
-
-  const handleOpenRejectModal = (contractId) => {
-      setRejectionModal({ isOpen: true, contractId });
-  };
-
-  const handleConfirmRejection = (reason) => {
-      onRejectContract(rejectionModal.contractId, reason);
-      setRejectionModal({ isOpen: false, contractId: null });
-  };
+  
+  const handleOpenRejectModal = (contractId) => { setRejectionModal({ isOpen: true, contractId }); };
+  const handleConfirmRejection = (reason) => { onRejectContract(rejectionModal.contractId, reason); setRejectionModal({ isOpen: false, contractId: null }); };
 
   return (
     <>
-      <RejectionModal 
-        isOpen={rejectionModal.isOpen}
-        onClose={() => setRejectionModal({ isOpen: false, contractId: null })}
-        onSubmit={handleConfirmRejection}
-      />
-      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{canPerformActions && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
-    </>
-  );
-};
-
-export default function App() {
-  const [appData, setAppData] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeThreadUserId, setActiveThreadUserId] = useState(null);
-
-  const API_URL = ''; // Na Render nie potrzebujemy tego, bo używamy rewrite rules
-
-  const fetchData = useCallback(async () => {
-    if (!token) {
-        setIsLoading(false);
-        return;
-    }
-    try {
-      const response = await fetch(`${API_URL}/api/data`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.status === 401 || response.status === 403) {
-        handleLogout();
-        return;
-      }
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
-      setAppData(data);
-      
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const userFromToken = data.users.find(u => u.id === decodedToken.id);
-      setCurrentUser(userFromToken);
-
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      handleLogout();
-    } finally {
-        setIsLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  
-  const handleLogin = async (nickname, password) => {
-    const response = await fetch(`${API_URL}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, password })
-    });
-    if (!response.ok) throw new Error('Login failed');
-    const { token: newToken, user } = await response.json();
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    setCurrentUser(user);
-    return true;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setCurrentUser(null);
-  };
-
-  const handleAddContract = async (newContractData) => {
-    const { contractType, detailedDescription } = newContractData;
-    await fetch(`${API_URL}/api/contracts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ 
-            userId: currentUser.id,
-            userNickname: currentUser.nickname,
-            contractType, 
-            detailedDescription, 
-            imageUrl: 'https://placehold.co/800x400/1f2937/ffffff?text=Nowy+kontrakt' 
-        }),
-    });
-    fetchData();
-  };
-  const handleApproveContract = async (contractId, contractType) => {
-    const config = appData.contractConfig.find(c => c.name === contractType);
-    const amount = config ? config.payout : 0;
-    await fetch(`${API_URL}/api/contracts/${contractId}/approve`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ payoutAmount: amount })
-    });
-    fetchData();
-  };
-  const handleRejectContract = async (contractId, reason) => {
-    await fetch(`${API_URL}/api/contracts/${contractId}/reject`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ rejectionReason: reason })
-    });
-    fetchData();
-  };
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen bg-gray-800 text-white">Ładowanie...</div>;
-  }
-  
-  if (!currentUser || !appData) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  const { users, contracts, contractConfig, availableRoles } = appData;
-  const activeUser = users.find(u => u.id === activeThreadUserId);
-  const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
-
-  return (
-    <div className="flex h-screen font-sans">
-      <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} availableRoles={availableRoles} />
-      <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUser} contractConfig={contractConfig} availableRoles={availableRoles} />
-    </div>
-  );
-}
-
+      <RejectionModal isOpen={rejectionModal.isOpen} onClose={() => setRejectionModal({ isOpen: false, contractId: null })} onSubmit={handleConfirmRejection} />
+      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg cursor-pointer" onClick={() => onImageClick(contract.imageurl)} onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/
