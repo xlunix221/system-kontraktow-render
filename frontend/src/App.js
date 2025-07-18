@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // --- IKONY ---
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
 const XIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
-const ChevronDownIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform duration-200 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
+const ChevronDownIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform duration-300 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
 
 // --- DEFINICJE STYLÓW ---
 const styles = {
@@ -73,7 +73,18 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
   const usersToDisplayInThreads = canViewOtherThreads ? users.filter(u => { const userRoleConfig = availableRoles.find(r => r.name === u.role); return userRoleConfig?.isthreadvisible;}) : [currentUser];
 
   const CollapsibleSection = ({ title, isVisible, onToggle, children }) => (
-    <div className="py-2"><button onClick={onToggle} className="flex items-center justify-between w-full px-2 text-left transition-colors hover:text-violet-300"><p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">{title}</p><ChevronDownIcon className={!isVisible && '-rotate-90'} /></button>{isVisible && <div className="mt-2 space-y-1">{children}</div>}</div>);
+    <div className="border-b border-violet-500/10">
+      <button onClick={onToggle} className="flex items-center justify-between w-full px-2 py-3 text-left transition-colors hover:text-violet-300">
+        <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">{title}</p>
+        <ChevronDownIcon className={!isVisible && '-rotate-90'} />
+      </button>
+      <div className={`transition-[max-height] duration-500 ease-in-out overflow-hidden ${isVisible ? 'max-h-[500px]' : 'max-h-0'}`}>
+        <div className="pb-2 px-1 space-y-1">
+            {children}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col w-64 h-screen bg-gray-900 text-white border-r border-violet-500/20">
