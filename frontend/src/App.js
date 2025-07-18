@@ -187,11 +187,17 @@ const ContractForm = ({ onAddContract, contractConfig }) => {
     );
 };
 
-const AdminActions = ({ onApprove, onReject, onDelete, canApprove, canReject }) => (
+const AdminActions = ({ onApprove, onReject, onDelete, canApprove, canReject, canDelete }) => (
     <div className="mt-4 flex items-center space-x-2">
-        {canApprove && <button onClick={onApprove} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-500 transition-colors hover:shadow-[0_0_15px_rgba(34,197,94,0.7)]"><CheckIcon />Zatwierdź</button>}
-        {canReject && <button onClick={onReject} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors hover:shadow-[0_0_15px_rgba(239,68,68,0.7)]"><XIcon />Odrzuć</button>}
-        {canReject && <button onClick={onDelete} className="p-2 text-gray-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"><TrashIcon /></button>}
+        {/* Przyciski zatwierdzania/odrzucania widoczne tylko dla kontraktów bez statusu */}
+        {!onApprove && !onReject ? null : (
+            <>
+                {canApprove && <button onClick={onApprove} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-500 transition-colors hover:shadow-[0_0_15px_rgba(34,197,94,0.7)]"><CheckIcon />Zatwierdź</button>}
+                {canReject && <button onClick={onReject} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors hover:shadow-[0_0_15px_rgba(239,68,68,0.7)]"><XIcon />Odrzuć</button>}
+            </>
+        )}
+        {/* Przycisk usuwania widoczny zawsze dla uprawnionych */}
+        {canDelete && <button onClick={onDelete} className="p-2 text-gray-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"><TrashIcon /></button>}
     </div>
 );
 
@@ -262,7 +268,18 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
                                 onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} 
                               />
                               {contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}
-                              {currentUser.id !== user.id && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} onDelete={() => onDeleteContract(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}
+                              
+                              {/* ZMIENIONA LOGIKA WYŚWIETLANIA PRZYCISKÓW */}
+                              {currentUser.id !== user.id && (
+                                <AdminActions 
+                                    onApprove={!contract.isapproved && !contract.isrejected ? () => onApproveContract(contract.id, contract.contracttype) : null}
+                                    onReject={!contract.isapproved && !contract.isrejected ? () => handleOpenRejectModal(contract.id) : null}
+                                    onDelete={() => onDeleteContract(contract.id)}
+                                    canApprove={currentUserRoleConfig.canapprove}
+                                    canReject={currentUserRoleConfig.canreject}
+                                    canDelete={currentUserRoleConfig.candelete}
+                                />
+                              )}
                           </div>
                       ))
                   )}
