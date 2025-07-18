@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const [maintenanceMode, setMaintenanceMode] = useState(false);
-
-useEffect(() => {
-  const checkMaintenance = async () => {
-    try {
-      const res = await fetch('/api/maintenance');
-      const data = await res.json();
-      if (data.maintenance) setMaintenanceMode(true);
-    } catch (err) {
-      console.error('Błąd sprawdzania trybu technicznego:', err);
-    }
-  };
-  checkMaintenance();
-}, []);
-
 // --- IKONY ---
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
 const XIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
@@ -245,24 +230,7 @@ export default function App() {
   const handleApproveContract = async (contractId, contractType) => { const config = appData.contractConfig.find(c => c.name === contractType); const amount = config ? config.payout : 0; await fetch(`${API_URL}/api/contracts/${contractId}/approve`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ payoutAmount: amount }) }); fetchData(); };
   const handleRejectContract = async (contractId, reason) => { await fetch(`${API_URL}/api/contracts/${contractId}/reject`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ rejectionReason: reason }) }); fetchData(); };
   
-if (maintenanceMode) {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-      <div className="text-center p-6 bg-gray-800/70 rounded-xl border border-violet-500/30 shadow-xl">
-        <h1 className="text-3xl font-bold text-violet-300 mb-4">🔧 Prace techniczne</h1>
-        <p className="text-gray-300 text-sm">
-          System kontraktów jest tymczasowo wyłączony.<br />
-          Trwa aktualizacja lub konserwacja.<br />
-          Spróbuj ponownie później 🙏
-        </p>
-      </div>
-    </div>
-  );
-}
-
-if (isLoading) {
-  return <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">Ładowanie...</div>;
-}
+  if (isLoading) { return <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white" style={styles.purpleGlowText}>Ładowanie...</div>; }
   if (!currentUser || !appData) { return <LoginPage onLogin={handleLogin} />; }
 
   const { users, contracts, contractConfig, availableRoles, changelog } = appData;
