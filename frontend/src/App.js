@@ -205,7 +205,7 @@ export default function App() {
     }
   }, [token, activeThreadUserId]);
 
-  useEffect(() => {
+  useEffect(() =>. {
     fetchData();
   }, [fetchData]);
   
