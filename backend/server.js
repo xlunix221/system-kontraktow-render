@@ -53,7 +53,8 @@ const initialConfig = {
       date: '2025-07-18', 
       changes: [
         'W wersji 2.0.0 bedzie juz wszystko dzialac poprawnie! Milego!',
-        'Naprawiono dodawanie zdjec!'
+        'Naprawiono dodawanie zdjec!',
+        'Dodano możliwość usuwania wiadomości przez administracje!'
       ]
     },
     { 
