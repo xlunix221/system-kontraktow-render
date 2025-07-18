@@ -32,10 +32,10 @@ const initialConfig = {
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
-      { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'V-lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Zarząd', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Obywatel', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: 'Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
+      { name: 'V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Zarząd', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Obywatel', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
@@ -50,6 +50,13 @@ const initialConfig = {
 
   // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
   changelog: [
+    { 
+      version: 'v1.1.1', 
+      date: '2025-07-18', 
+      changes: [
+        'Dodano sortowanie listy członków według priorytetu roli.'
+      ] 
+    },
     { 
       version: 'v1.1.0', 
       date: '2025-07-18', 
@@ -90,7 +97,7 @@ const initializeDatabase = async () => {
       CREATE TABLE users (id SERIAL PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, staticId TEXT, role TEXT, password TEXT);
       CREATE TABLE contracts (id SERIAL PRIMARY KEY, userId INTEGER, userNickname TEXT, contractType TEXT, detailedDescription TEXT, imageUrl TEXT, timestamp TEXT, isApproved BOOLEAN DEFAULT false, isRejected BOOLEAN DEFAULT false, payoutAmount REAL, rejectionReason TEXT);
       CREATE TABLE contract_config (name TEXT PRIMARY KEY, payout REAL);
-      CREATE TABLE available_roles (name TEXT PRIMARY KEY, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN);
+      CREATE TABLE available_roles (name TEXT PRIMARY KEY, priority INTEGER, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN);
     `;
     await client.query(schema);
 
@@ -100,8 +107,8 @@ const initializeDatabase = async () => {
         [user.nickname, user.staticId, user.role, hashedPassword]);
     }
     for (const role of initialConfig.availableRoles) {
-        await client.query('INSERT INTO available_roles (name, canViewThreads, isThreadVisible, canApprove, canReject) VALUES ($1, $2, $3, $4, $5)',
-        [role.name, role.canViewThreads, role.isThreadVisible, role.canApprove, role.canReject]);
+        await client.query('INSERT INTO available_roles (name, priority, canViewThreads, isThreadVisible, canApprove, canReject) VALUES ($1, $2, $3, $4, $5, $6)',
+        [role.name, role.priority, role.canViewThreads, role.isThreadVisible, role.canApprove, role.canReject]);
     }
     for (const config of initialConfig.contractConfig) {
         await client.query('INSERT INTO contract_config (name, payout) VALUES ($1, $2)', [config.name, config.payout]);
@@ -166,7 +173,13 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/data', authenticateToken, async (req, res) => {
     try {
-        const usersRes = await db.query("SELECT id, nickname, staticid, role FROM users ORDER BY nickname ASC");
+        const usersQuery = `
+            SELECT u.id, u.nickname, u.staticid, u.role
+            FROM users u
+            JOIN available_roles ar ON u.role = ar.name
+            ORDER BY ar.priority ASC, u.nickname ASC;
+        `;
+        const usersRes = await db.query(usersQuery);
         const contractsRes = await db.query("SELECT * FROM contracts ORDER BY timestamp DESC");
         const contractConfigRes = await db.query("SELECT * FROM contract_config");
         const availableRolesRes = await db.query("SELECT * FROM available_roles");
@@ -176,7 +189,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
             contracts: contractsRes.rows,
             contractConfig: contractConfigRes.rows,
             availableRoles: availableRolesRes.rows,
-            changelog: initialConfig.changelog, // <-- DODANA LINIA
+            changelog: initialConfig.changelog,
         });
     } catch (err) {
         res.status(500).send(err.message);
