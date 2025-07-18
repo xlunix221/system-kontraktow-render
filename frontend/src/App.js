@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
 const XIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
 const ChevronDownIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform duration-300 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
+const TrashIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>);
+
 
 // --- DEFINICJE STYLÓW ---
 const styles = {
@@ -185,10 +187,11 @@ const ContractForm = ({ onAddContract, contractConfig }) => {
     );
 };
 
-const AdminActions = ({ onApprove, onReject, canApprove, canReject }) => (
-    <div className="mt-4 flex space-x-2">
+const AdminActions = ({ onApprove, onReject, onDelete, canApprove, canReject }) => (
+    <div className="mt-4 flex items-center space-x-2">
         {canApprove && <button onClick={onApprove} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-500 transition-colors hover:shadow-[0_0_15px_rgba(34,197,94,0.7)]"><CheckIcon />Zatwierdź</button>}
         {canReject && <button onClick={onReject} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors hover:shadow-[0_0_15px_rgba(239,68,68,0.7)]"><XIcon />Odrzuć</button>}
+        {canReject && <button onClick={onDelete} className="p-2 text-gray-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"><TrashIcon /></button>}
     </div>
 );
 
@@ -215,7 +218,7 @@ const ImageModal = ({ imageUrl, onClose }) => {
     return (<div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50" onClick={onClose}><img src={imageUrl} alt="Powiększony dowód" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl shadow-violet-500/30" /></div>);
 };
 
-const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, currentUser, contractConfig, availableRoles, onImageClick }) => {
+const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, onDeleteContract, currentUser, contractConfig, availableRoles, onImageClick }) => {
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, contractId: null });
   const [hoveredContract, setHoveredContract] = useState(null);
 
@@ -259,7 +262,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
                                 onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} 
                               />
                               {contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}
-                              {currentUser.id !== user.id && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}
+                              {currentUser.id !== user.id && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} onDelete={() => onDeleteContract(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}
                           </div>
                       ))
                   )}
@@ -358,6 +361,16 @@ export default function App() {
       fetchData(); 
   };
   
+  const handleDeleteContract = async (contractId) => {
+      if (window.confirm('Czy na pewno chcesz trwale usunąć ten kontrakt? Tej akcji nie można cofnąć.')) {
+          await fetch(`${API_URL}/api/contracts/${contractId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          fetchData();
+      }
+  };
+
   if (isLoading) { return <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white" style={styles.purpleGlowText}>Ładowanie...</div>; }
   if (!currentUser || !appData) { return <LoginPage onLogin={handleLogin} />; }
 
@@ -369,7 +382,18 @@ export default function App() {
     <div className="flex h-screen font-sans bg-gray-800">
       <ImageModal imageUrl={zoomedImageUrl} onClose={() => setZoomedImageUrl(null)} />
       <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} availableRoles={availableRoles} changelog={changelog} />
-      <ThreadView user={activeUser} contracts={activeContracts} onAddContract={handleAddContract} onApproveContract={handleApproveContract} onRejectContract={handleRejectContract} currentUser={currentUser} contractConfig={contractConfig} availableRoles={availableRoles} onImageClick={setZoomedImageUrl} />
+      <ThreadView 
+        user={activeUser} 
+        contracts={activeContracts} 
+        onAddContract={handleAddContract} 
+        onApproveContract={handleApproveContract} 
+        onRejectContract={handleRejectContract} 
+        onDeleteContract={handleDeleteContract}
+        currentUser={currentUser} 
+        contractConfig={contractConfig} 
+        availableRoles={availableRoles} 
+        onImageClick={setZoomedImageUrl} 
+      />
     </div>
   );
 }
