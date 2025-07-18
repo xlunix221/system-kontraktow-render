@@ -26,8 +26,7 @@ const initialConfig = {
     { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Jarek Fangss', staticId: '25243', role: 'V-lider', password: 'Jarek@fangs' },
     { nickname: 'Scott Boner', staticId: '83913', role: 'Zarząd', password: '1234' },
-    { nickname: 'test', staticId: '111111', role: 'Rekrut', password: '1111' },
-    // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
+    { nickname: 'test', staticId: '111111', role: 'Obywatel', password: '1111' },
   ],
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
@@ -35,8 +34,7 @@ const initialConfig = {
       { name: 'Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
       { name: 'V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
       { name: 'Zarząd', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Rekruter', priority: 4, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
-      { name: 'Rekrut', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: 'Obywatel', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
@@ -49,7 +47,7 @@ const initialConfig = {
     { name: 'Inne (opisz poniżej)', payout: 5000 },
   ],
 
-  // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
+// --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
   changelog: [
     { 
       version: 'v2.0.0', 
@@ -180,6 +178,16 @@ app.post('/api/login', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
+// NOWY, PUBLICZNY ENDPOINT
+app.get('/api/changelog/latest', (req, res) => {
+    if (initialConfig.changelog && initialConfig.changelog.length > 0) {
+        res.json(initialConfig.changelog[0]); // Zwróć tylko pierwszy (najnowszy) element
+    } else {
+        res.status(404).json({ message: 'Changelog not found' });
+    }
+});
+
 
 app.get('/api/data', authenticateToken, async (req, res) => {
     try {
