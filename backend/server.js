@@ -22,7 +22,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const initialConfig = {
   // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
   users: [
-    { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: 'Franiu225!' },
+    { nickname: 'Gregory Tyler', staticId: '24032', role: 'Lider', password: 'Franiu225!' },
     { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Myster Czapa', staticId: '26856', role: 'V-lider', password: 'Jarek@fangs' },
     { nickname: 'Genki Teshmio', staticId: '125852', role: 'Obywatel', password: 'superauto123' },
