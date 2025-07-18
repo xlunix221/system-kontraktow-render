@@ -32,11 +32,27 @@ const LoginPage = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [latestChangelog, setLatestChangelog] = useState(null);
+
+  useEffect(() => {
+    const fetchChangelog = async () => {
+      try {
+        const response = await fetch('/api/changelog/latest');
+        if (response.ok) {
+          const data = await response.json();
+          setLatestChangelog(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch latest changelog:', error);
+      }
+    };
+    fetchChangelog();
+  }, []);
 
   const handleSubmit = async (e) => { e.preventDefault(); setError(''); try { await onLogin(nickname, password); } catch (err) { setError('Nieprawidłowy nick lub hasło.'); console.error(err);}};
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 p-4">
       <div className="w-full max-w-md p-8 space-y-6 bg-gray-800/50 backdrop-blur-sm border border-violet-500/20 rounded-xl shadow-2xl shadow-violet-900/20">
         <div className="text-center">
           <h2 className="text-4xl font-bold text-white" style={styles.mainGradientText}>System Kontraktów</h2>
@@ -58,6 +74,19 @@ const LoginPage = ({ onLogin }) => {
             </button>
           </div>
         </form>
+
+        {latestChangelog && (
+          <div className="mt-6 pt-6 border-t border-violet-500/20 text-center">
+            <h4 className="text-sm font-bold text-violet-300" style={styles.purpleGlowText}>
+              Ostatnie zmiany: {latestChangelog.version}
+            </h4>
+            <ul className="mt-2 text-xs text-gray-400 list-none space-y-1">
+              {latestChangelog.changes.map((change, index) => (
+                <li key={index}>- {change}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
