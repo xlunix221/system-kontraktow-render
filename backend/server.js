@@ -1,70 +1,37 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('./db');
-require('dotenv').config();
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET;
-
-
-// ===================================================================================
-//
-//       TWOJE CENTRUM ZARZĄDZANIA - EDYTUJ WSZYSTKO PONIŻEJ
-//
-// ===================================================================================
-
 const initialConfig = {
- 
-  const initialConfig = {
-  maintenanceMode: false, // ← ZMIENIASZ NA true żeby pokazać "prace techniczne"
-  
-    // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
+  maintenanceMode: false,
   users: [
     { nickname: 'Gregory Tyler', staticId: '24032', role: '[7] Lider', password: 'Franiu225!' },
     { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
     { nickname: 'Genki Teshmio', staticId: '125852', role: '[1] New Member', password: 'superauto123' },
   ],
-
-  // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
-      { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
-      { name: '[4] OG Member', priority: 4, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-      { name: '[3] Member +', priority: 5, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-      { name: '[2] Member', priority: 6, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
-      { name: '[1] New Member', priority: 7, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+    { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
+    { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+    { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
+    { name: '[4] OG Member', priority: 4, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+    { name: '[3] Member +', priority: 5, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+    { name: '[2] Member', priority: 6, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+    { name: '[1] New Member', priority: 7, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
-
-  // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
   contractConfig: [
     { name: 'Inne (opisz poniżej)', payout: 5000 },
   ],
-
-  // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
- changelog: [
-  { 
-    version: 'v1.5.0', 
-    date: '2025-07-18', 
-    changes: [
-      'Dodano nowe role!',
-    ] 
-  }, 
-  { 
-    version: 'v1.4.0', 
-    date: '2025-07-18', 
-    changes: [
-      'Dodano animacje wysuwania sekcji w panelu bocznym.',
-      'Wyświetlanie ostatniego changeloga na stronie logowania.',
-    ] 
-  },
+  changelog: [
+    { 
+      version: 'v1.5.0', 
+      date: '2025-07-18', 
+      changes: ['Dodano nowe role!'] 
+    },
+    { 
+      version: 'v1.4.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Dodano animacje wysuwania sekcji w panelu bocznym.',
+        'Wyświetlanie ostatniego changeloga na stronie logowania.',
+      ] 
+    },
     { 
       version: 'v1.3.0', 
       date: '2025-07-18', 
