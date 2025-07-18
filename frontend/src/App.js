@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import creedLogo from './CREED.jpg'; // Upewnij się, że plik CREED.jpg jest w folderze src
+import creedLogo from './CREED.jpg'; // Ta linia wymaga, aby plik CREED.jpg był w folderze src
 
 // --- IKONY ---
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
@@ -310,18 +310,16 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
 export default function App() {
   const [appData, setAppData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [token, setToken] = useState(null); // ZMIANA: Zawsze startuje jako null
-  const [isLoading, setIsLoading] = useState(false); // ZMIANA: Startuje jako false
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeThreadUserId, setActiveThreadUserId] = useState(null);
   const [zoomedImageUrl, setZoomedImageUrl] = useState(null);
   const API_URL = '';
 
-  const fetchData = useCallback(async (currentToken) => { // ZMIANA: Przyjmuje token jako argument
+  const fetchData = useCallback(async (currentToken) => {
     if (!currentToken) { 
-        setIsLoading(false); 
         return; 
     }
-    setIsLoading(true); // ZMIANA: Ustawiamy ładowanie tutaj
     try {
       const response = await fetch(`${API_URL}/api/data`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
       if (response.status === 401 || response.status === 403) { handleLogout(); return; }
@@ -335,20 +333,33 @@ export default function App() {
     } catch (error) { 
         console.error("Failed to fetch data:", error); 
         handleLogout(); 
-    } finally { 
-        setIsLoading(false); 
     }
-  }, [activeThreadUserId]); // ZMIANA: Usunięto token z zależności
-
-  // ZMIANA: Usunięto useEffect, który automatycznie logował przy starcie
+  }, [activeThreadUserId]);
   
   const handleLogin = async (nickname, password) => {
-    const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, password }) });
-    if (!response.ok) throw new Error('Login failed');
-    const { token: newToken } = await response.json();
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    await fetchData(newToken); // ZMIANA: Pobieramy dane od razu po zalogowaniu
+    setIsLoading(true);
+    const timerPromise = new Promise(resolve => setTimeout(resolve, 5000)); // 5-sekundowy timer
+    let loginSuccess = false;
+
+    try {
+        const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, password }) });
+        if (!response.ok) throw new Error('Login failed');
+        const { token: newToken } = await response.json();
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        await fetchData(newToken);
+        loginSuccess = true;
+    } catch (error) {
+        console.error(error);
+        // Błąd zostanie rzucony dalej, aby LoginPage go obsłużył
+        throw error;
+    } finally {
+        // Czekamy na zakończenie timera tylko jeśli logowanie się powiodło
+        if(loginSuccess) {
+            await timerPromise;
+        }
+        setIsLoading(false);
+    }
     return true;
   };
 
@@ -356,7 +367,7 @@ export default function App() {
       localStorage.removeItem('token'); 
       setToken(null); 
       setCurrentUser(null); 
-      setAppData(null); // Czyścimy wszystkie dane
+      setAppData(null);
   };
 
   const handleAddContract = async (newContractData) => {
