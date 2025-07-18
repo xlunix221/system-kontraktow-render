@@ -305,5 +305,5 @@ app.get('/api/images/:id', async (req, res) => {
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  await initializeDatabase(); // dodaj te dwa ukosniki jak nie chcesz nic zmieniac!
+//  await initializeDatabase(); // dodaj te dwa ukosniki jak nie chcesz nic zmieniac!
 });
