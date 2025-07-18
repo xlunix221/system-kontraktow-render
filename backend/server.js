@@ -53,7 +53,7 @@ const initialConfig = {
       changes: [
         'W wersji 2.0.0 bedzie juz wszystko dzialac poprawnie! Milego!'
         'Naprawiono dodawanie zdjec!'
-          
+        ]
     },
     { 
       version: 'v1.5.0', 
