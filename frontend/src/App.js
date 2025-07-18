@@ -116,7 +116,8 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
   if (!user) { return (<div className="flex-1 p-6 flex items-center justify-center text-gray-400">Wybierz wątek z listy.</div>); }
   
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
-  
+  const canPerformActions = currentUserRoleConfig?.canviewthreads || false;
+
   const handleOpenRejectModal = (contractId) => {
       setRejectionModal({ isOpen: true, contractId });
   };
@@ -133,7 +134,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
         onClose={() => setRejectionModal({ isOpen: false, contractId: null })}
         onSubmit={handleConfirmRejection}
       />
-      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{currentUser.id !== user.id && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}</div>)))}</div></main>{currentUserRoleConfig.canpost && user.id === currentUser.id && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
+      <div className="flex flex-col flex-1 bg-gray-700"><header className="px-6 py-4 bg-gray-700 border-b border-gray-600"><h2 className="text-xl font-semibold text-white">Wątek: {user.nickname}</h2><p className="text-sm text-gray-400">Static ID: {user.staticid}</p></header><main className="flex-1 p-6 overflow-y-auto"><div className="space-y-6">{contracts.length === 0 ? (<p className="text-gray-400">Brak zgłoszonych kontraktów w tym wątku.</p>) : (contracts.map(contract => (<div key={contract.id} className="p-4 bg-gray-800 rounded-lg shadow-md"><div className="flex items-start justify-between"><div><h3 className="text-lg font-semibold text-white">{contract.contracttype}</h3>{contract.detaileddescription && (<p className="mt-1 text-sm text-gray-300">{contract.detaileddescription}</p>)}<p className="mt-2 mb-3 text-xs text-gray-500">{new Date(contract.timestamp).toLocaleString('pl-PL')}</p></div><div className="flex flex-col items-end space-y-2">{contract.isapproved && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-green-800 bg-green-300 rounded-full">Zatwierdzony: ${contract.payoutamount.toLocaleString('pl-PL')}</div>)}{contract.isrejected && (<div className="flex-shrink-0 px-3 py-1 ml-4 text-sm font-bold text-red-800 bg-red-300 rounded-full">Odrzucony</div>)}</div></div><img src={contract.imageurl} alt={`Dowód dla: ${contract.contracttype}`} className="object-cover w-full mt-2 border border-gray-600 rounded-md max-w-lg" onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/800x400/1f2937/ffffff?text=Błąd+ładowania+obrazka"}} />{contract.isrejected && contract.rejectionreason && (<div className="mt-2 p-3 bg-red-900/50 rounded-md text-sm"><p className="font-semibold text-red-300">Powód odrzucenia:</p><p className="text-red-200">{contract.rejectionreason}</p></div>)}{canPerformActions && !contract.isapproved && !contract.isrejected && (<AdminActions onApprove={() => onApproveContract(contract.id, contract.contracttype)} onReject={() => handleOpenRejectModal(contract.id)} canApprove={currentUserRoleConfig.canapprove} canReject={currentUserRoleConfig.canreject} />)}</div>)))}</div></main>{!canPerformActions && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}</div>
     </>
   );
 };
@@ -167,9 +168,6 @@ export default function App() {
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const userFromToken = data.users.find(u => u.id === decodedToken.id);
       setCurrentUser(userFromToken);
-      if (!activeThreadUserId) {
-        setActiveThreadUserId(userFromToken.id);
-      }
 
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -177,7 +175,7 @@ export default function App() {
     } finally {
         setIsLoading(false);
     }
-  }, [token, activeThreadUserId]);
+  }, [token]);
 
   useEffect(() => {
     fetchData();
@@ -190,9 +188,10 @@ export default function App() {
         body: JSON.stringify({ nickname, password })
     });
     if (!response.ok) throw new Error('Login failed');
-    const { token: newToken } = await response.json();
+    const { token: newToken, user } = await response.json();
     localStorage.setItem('token', newToken);
     setToken(newToken);
+    setCurrentUser(user);
     return true;
   };
 
@@ -208,6 +207,7 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ 
+            userId: currentUser.id,
             userNickname: currentUser.nickname,
             contractType, 
             detailedDescription, 
@@ -254,4 +254,3 @@ export default function App() {
     </div>
   );
 }
-
