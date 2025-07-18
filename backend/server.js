@@ -5,12 +5,19 @@ const jwt = require('jsonwebtoken');
 const db = require('./db');
 require('dotenv').config();
 
+// Multer jest potrzebny do przetwarzania plików
+const multer = require('multer');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Konfiguracja multer do przechowywania plików w pamięci
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 
 // ===================================================================================
@@ -25,6 +32,7 @@ const initialConfig = {
     { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
     { nickname: 'Genki Teshmio', staticId: '125852', role: '[1] New Member', password: 'superauto123' },
+    { nickname: 'test', staticId: '1111', role: '[1] New Member', password: '1111' },
   ],
   availableRoles: [
     { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
@@ -81,7 +89,20 @@ const initializeDatabase = async () => {
 
     const schema = `
       CREATE TABLE users (id SERIAL PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, staticId TEXT, role TEXT, password TEXT);
-      CREATE TABLE contracts (id SERIAL PRIMARY KEY, userId INTEGER, userNickname TEXT, contractType TEXT, detailedDescription TEXT, imageUrl TEXT, timestamp TEXT, isApproved BOOLEAN DEFAULT false, isRejected BOOLEAN DEFAULT false, payoutAmount REAL, rejectionReason TEXT);
+      CREATE TABLE contracts (
+          id SERIAL PRIMARY KEY, 
+          userId INTEGER, 
+          userNickname TEXT, 
+          contractType TEXT, 
+          detailedDescription TEXT, 
+          imageData BYTEA, 
+          imageMimeType TEXT, 
+          timestamp TEXT, 
+          isApproved BOOLEAN DEFAULT false, 
+          isRejected BOOLEAN DEFAULT false, 
+          payoutAmount REAL, 
+          rejectionReason TEXT
+      );
       CREATE TABLE contract_config (name TEXT PRIMARY KEY, payout REAL);
       CREATE TABLE available_roles (name TEXT PRIMARY KEY, priority INTEGER, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN);
     `;
@@ -157,10 +178,9 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// NOWY, PUBLICZNY ENDPOINT
 app.get('/api/changelog/latest', (req, res) => {
     if (initialConfig.changelog && initialConfig.changelog.length > 0) {
-        res.json(initialConfig.changelog[0]); // Zwróć tylko pierwszy (najnowszy) element
+        res.json(initialConfig.changelog[0]);
     } else {
         res.status(404).json({ message: 'Changelog not found' });
     }
@@ -176,7 +196,8 @@ app.get('/api/data', authenticateToken, async (req, res) => {
             ORDER BY ar.priority ASC, u.nickname ASC;
         `;
         const usersRes = await db.query(usersQuery);
-        const contractsRes = await db.query("SELECT * FROM contracts ORDER BY timestamp DESC");
+        // Zmieniamy zapytanie, aby nie pobierać danych obrazu w tym miejscu
+        const contractsRes = await db.query("SELECT id, userid, usernickname, contracttype, detaileddescription, timestamp, isapproved, isrejected, payoutamount, rejectionreason FROM contracts ORDER BY timestamp DESC");
         const contractConfigRes = await db.query("SELECT * FROM contract_config");
         const availableRolesRes = await db.query("SELECT * FROM available_roles");
 
@@ -192,14 +213,24 @@ app.get('/api/data', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/contracts', authenticateToken, async (req, res) => {
+app.post('/api/contracts', authenticateToken, upload.single('image'), async (req, res) => {
     if (!req.user.permissions.isthreadvisible) return res.status(403).send('Brak uprawnień do dodawania kontraktów.');
 
-    const { userNickname, contractType, detailedDescription, imageUrl } = req.body;
+    const { userNickname, contractType, detailedDescription } = req.body;
     const timestamp = new Date().toISOString();
+
+    if (!req.file) {
+        return res.status(400).send('No image file provided.');
+    }
+    
+    const imageData = req.file.buffer;
+    const imageMimeType = req.file.mimetype;
+
     try {
-        await db.query('INSERT INTO contracts (userid, usernickname, contracttype, detaileddescription, imageurl, timestamp) VALUES ($1, $2, $3, $4, $5, $6)',
-        [req.user.id, userNickname, contractType, detailedDescription, imageUrl, timestamp]);
+        await db.query(
+            'INSERT INTO contracts (userid, usernickname, contracttype, detaileddescription, imagedata, imagemimetype, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [req.user.id, userNickname, contractType, detailedDescription, imageData, imageMimeType, timestamp]
+        );
         res.status(201).json({ success: true });
     } catch (err) {
         res.status(500).send(err.message);
@@ -226,7 +257,25 @@ app.put('/api/contracts/:id/:action', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/images/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query('SELECT imagedata, imagemimetype FROM contracts WHERE id = $1', [id]);
+
+        if (result.rows.length > 0) {
+            const img = result.rows[0];
+            res.setHeader('Content-Type', img.imagemimetype);
+            res.send(img.imagedata);
+        } else {
+            res.status(404).send('Image not found');
+        }
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  await initializeDatabase();
+  // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
 });
