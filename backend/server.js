@@ -32,7 +32,7 @@ const initialConfig = {
     { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
     { nickname: 'Genki Teshmio', staticId: '125852', role: '[1] New Member', password: 'superauto123' },
-    { nickname: 'test1', staticId: '1111', role: '[1] New Member', password: '1111' }
+    { nickname: 'test', staticId: '1111', role: '[1] New Member', password: '1111' }
   ],
   availableRoles: [
     // NOWA KOLUMNA: 'canDelete'
