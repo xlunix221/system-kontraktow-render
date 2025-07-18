@@ -52,6 +52,15 @@ const initialConfig = {
   // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
   changelog: [
     { 
+      version: 'v2.0.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Odświeżono wygląd całej aplikacji, wprowadzając nowoczesny, ciemny motyw.',
+        'Dodano fioletowe, świecące akcenty, aby poprawić estetykę interfejsu.',
+        'Ulepszono interaktywność elementów (przyciski, karty, pola formularzy).',
+      ] 
+    },
+    { 
       version: 'v1.1.1', 
       date: '2025-07-18', 
       changes: [
