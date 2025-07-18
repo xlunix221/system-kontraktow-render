@@ -31,7 +31,7 @@ const initialConfig = {
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
-      { name: 'Lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
       { name: 'V-lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
       { name: 'admin', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
      { name: 'member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
