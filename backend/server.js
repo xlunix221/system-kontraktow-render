@@ -47,40 +47,23 @@ const initialConfig = {
     { name: 'Inne (opisz poniżej)', payout: 5000 },
   ],
 
-// --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
+  // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
   changelog: [
     { 
-      version: 'v2.0.0', 
+      version: 'v1.4.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Dodano animacje wysuwania sekcji w panelu bocznym.',
+        'Wyświetlanie ostatniego changeloga na stronie logowania.',
+      ] 
+    },
+    { 
+      version: 'v1.3.0', 
       date: '2025-07-18', 
       changes: [
         'Odświeżono wygląd całej aplikacji, wprowadzając nowoczesny, ciemny motyw.',
         'Dodano fioletowe, świecące akcenty, aby poprawić estetykę interfejsu.',
         'Ulepszono interaktywność elementów (przyciski, karty, pola formularzy).',
-      ] 
-    },
-    { 
-      version: 'v1.1.1', 
-      date: '2025-07-18', 
-      changes: [
-        'Dodano sortowanie listy członków według priorytetu roli.'
-      ] 
-    },
-    { 
-      version: 'v1.1.0', 
-      date: '2025-07-18', 
-      changes: [
-        'Dodano zwijaną listę wszystkich członków rodziny.',
-        'Wprowadzono zwijane sekcje w panelu bocznym dla lepszej organizacji.',
-        'Dodano ten changelog, aby śledzić zmiany w aplikacji!'
-      ] 
-    },
-    { 
-      version: 'v1.0.0', 
-      date: '2025-07-17', 
-      changes: [
-        'Pierwsza wersja systemu kontraktów.',
-        'Logowanie, dodawanie i przeglądanie kontraktów.',
-        'System ról i uprawnień.'
       ] 
     },
   ]
