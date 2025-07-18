@@ -36,7 +36,7 @@ const initialConfig = {
   ],
   availableRoles: [
     // NOWA KOLUMNA: 'canDelete'
-    { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true, canDelete: true },
+    { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true, canDelete: true },
     { name: '[6] V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true, canDelete: true },
     { name: '[5] Management', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false, canDelete: true },
     { name: '[4] OG Member', priority: 4, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false, canDelete: false },
