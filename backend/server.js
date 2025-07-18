@@ -20,7 +20,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ===================================================================================
 
 const initialConfig = {
-  maintenanceMode: false,
   users: [
     { nickname: 'Gregory Tyler', staticId: '24032', role: '[7] Lider', password: 'Franiu225!' },
     { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
@@ -230,9 +229,4 @@ app.put('/api/contracts/:id/:action', authenticateToken, async (req, res) => {
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await initializeDatabase();
-});
-
-// NEW ENDPOINT
-app.get('/api/maintenance', (req, res) => {
-  res.json({ maintenance: initialConfig.maintenanceMode });
 });
