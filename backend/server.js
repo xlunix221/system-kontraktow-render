@@ -12,27 +12,86 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET;
 
+
+// ===================================================================================
+//
+//       TWOJE CENTRUM ZARZĄDZANIA - EDYTUJ WSZYSTKO PONIŻEJ
+//
+// ===================================================================================
+
+const initialConfig = {
+  // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
+  users: [
+    { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: '1234' },
+    { nickname: 'Rysiek', staticId: '12345', role: 'member', password: '1234' },
+    { nickname: 'Zdzichu', staticId: '54321', role: 'member', password: '1234' },
+    { nickname: 'Mirek', staticId: '98765', role: 'admin', password: '1234' },
+    // Aby dodać nowego użytkownika, skopiuj powyższą linijkę i zmień dane.
+    // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
+  ],
+
+  // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
+  availableRoles: [
+      { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
+      { name: 'admin', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: false },
+      { name: 'member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
+  ],
+
+  // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
+  contractConfig: [
+    { name: 'Sprzedaż towaru', payout: 25000 },
+    { name: 'Haracz', payout: 15000 },
+    { name: 'Przerzut auta', payout: 20000 },
+    { name: 'Napad na sklep', payout: 10000 },
+    { name: 'sigma', payout: 50000 },
+    { name: 'Inne (opisz poniżej)', payout: 5000 },
+  ]
+};
+
+// ===================================================================================
+//
+//       KONIEC SEKCJI ZARZĄDZANIA - NIE EDYTUJ NIC PONIŻEJ
+//
+// ===================================================================================
+
+
 // Funkcja do inicjalizacji bazy danych przy starcie serwera
 const initializeDatabase = async () => {
+  const client = await db.pool.connect();
   try {
-    await db.query("SELECT 'users'::regclass");
-    console.log('Database already initialized.');
-  } catch (error) {
-    console.log('Database not initialized. Creating schema...');
+    console.log('Force re-initializing database with new config...');
+    
+    // Czyszczenie starych tabel
+    await client.query('DROP TABLE IF EXISTS users, contracts, contract_config, available_roles;');
+
+    // Tworzenie nowego schematu
     const schema = `
       CREATE TABLE users (id SERIAL PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, staticId TEXT, role TEXT, password TEXT);
       CREATE TABLE contracts (id SERIAL PRIMARY KEY, userId INTEGER, userNickname TEXT, contractType TEXT, detailedDescription TEXT, imageUrl TEXT, timestamp TEXT, isApproved BOOLEAN DEFAULT false, isRejected BOOLEAN DEFAULT false, payoutAmount REAL, rejectionReason TEXT);
       CREATE TABLE contract_config (name TEXT PRIMARY KEY, payout REAL);
       CREATE TABLE available_roles (name TEXT PRIMARY KEY, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN);
     `;
-    const liderPassword = await bcrypt.hash('1234', 10);
-    const initialData = `
-      INSERT INTO users (nickname, staticId, role, password) VALUES ('Gregory Tyler', '10001', 'Lider', '${liderPassword}');
-      INSERT INTO contract_config (name, payout) VALUES ('Sprzedaż towaru', 25000), ('Haracz', 15000), ('Przerzut auta', 20000);
-      INSERT INTO available_roles (name, canViewThreads, isThreadVisible, canApprove, canReject) VALUES ('Lider', true, false, true, true), ('admin', true, false, true, false), ('member', false, true, false, false);
-    `;
-    await db.query(schema + initialData);
+    await client.query(schema);
+
+    // Wstawianie nowych danych
+    for (const user of initialConfig.users) {
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        await client.query('INSERT INTO users (nickname, staticId, role, password) VALUES ($1, $2, $3, $4)', 
+        [user.nickname, user.staticId, user.role, hashedPassword]);
+    }
+    for (const role of initialConfig.availableRoles) {
+        await client.query('INSERT INTO available_roles (name, canViewThreads, isThreadVisible, canApprove, canReject) VALUES ($1, $2, $3, $4, $5)',
+        [role.name, role.canViewThreads, role.isThreadVisible, role.canApprove, role.canReject]);
+    }
+    for (const config of initialConfig.contractConfig) {
+        await client.query('INSERT INTO contract_config (name, payout) VALUES ($1, $2)', [config.name, config.payout]);
+    }
+
     console.log('Database schema and initial data created successfully.');
+  } catch (err) {
+      console.error('Database initialization error:', err);
+  } finally {
+      client.release();
   }
 };
 
@@ -84,67 +143,6 @@ app.get('/api/data', authenticateToken, async (req, res) => {
         });
     } catch (err) {
         res.status(500).send(err.message);
-    }
-});
-
-app.post('/api/settings', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'Lider') return res.sendStatus(403);
-    
-    const { users, contractConfig, availableRoles } = req.body;
-    const client = await db.pool.connect();
-    try {
-        await client.query('BEGIN');
-
-        const dbUsersResult = await client.query('SELECT id FROM users');
-        const dbUserIds = dbUsersResult.rows.map(u => u.id);
-        const incomingUserIds = users.filter(u => typeof u.id === 'number').map(u => u.id);
-
-        // Usuwanie użytkowników
-        for (const dbId of dbUserIds) {
-            if (!incomingUserIds.includes(dbId)) {
-                const userToDelete = (await client.query('SELECT role FROM users WHERE id = $1', [dbId])).rows[0];
-                if (userToDelete.role !== 'Lider') {
-                    await client.query('DELETE FROM users WHERE id = $1', [dbId]);
-                }
-            }
-        }
-
-        // Aktualizacja i dodawanie użytkowników
-        for (const user of users) {
-             if (user.id.toString().startsWith('new-')) {
-                const hashedPassword = await bcrypt.hash(user.password || '1234', 10);
-                await client.query('INSERT INTO users (nickname, staticid, role, password) VALUES ($1, $2, $3, $4)', 
-                [user.nickname, user.staticid, user.role, hashedPassword]);
-            } else {
-                if (user.password && user.password.length > 0) {
-                    const hashedPassword = await bcrypt.hash(user.password, 10);
-                    await client.query('UPDATE users SET staticid = $1, role = $2, password = $3 WHERE id = $4', 
-                    [user.staticid, user.role, hashedPassword, user.id]);
-                } else {
-                    await client.query('UPDATE users SET staticid = $1, role = $2 WHERE id = $3', 
-                    [user.staticid, user.role, user.id]);
-                }
-            }
-        }
-
-        await client.query('DELETE FROM available_roles');
-        for (const role of availableRoles) {
-            await client.query('INSERT INTO available_roles (name, canviewthreads, isthreadvisible, canapprove, canreject) VALUES ($1, $2, $3, $4, $5)',
-            [role.name, role.canviewthreads, role.isthreadvisible, role.canapprove, role.canreject]);
-        }
-        
-        await client.query('DELETE FROM contract_config');
-        for (const config of contractConfig) {
-            await client.query('INSERT INTO contract_config (name, payout) VALUES ($1, $2)', [config.name, config.payout]);
-        }
-
-        await client.query('COMMIT');
-        res.status(200).json({ success: true });
-    } catch (e) {
-        await client.query('ROLLBACK');
-        res.status(500).send(e.message);
-    } finally {
-        client.release();
     }
 });
 
