@@ -22,10 +22,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const initialConfig = {
   // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
   users: [
-    { nickname: 'Gregory Tyler', staticId: '24032', role: 'Lider', password: 'Franiu225!' },
-    { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
-    { nickname: 'Myster Czapa', staticId: '26856', role: 'V-lider', password: 'Jarek@fangs' },
-    { nickname: 'Genki Teshmio', staticId: '125852', role: 'Obywatel', password: 'superauto123' },
+    { nickname: 'Gregory Tyler', staticId: '24032', role: '[7] Lider', password: 'Franiu225!' },
+    { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
+    { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
+    { nickname: 'Genki Teshmio', staticId: '125852', role: '[1] New Member', password: 'superauto123' },
     { nickname: 'test', staticId: '111111', role: 'Obywatel', password: '1111' },
   ],
 
@@ -42,16 +42,17 @@ const initialConfig = {
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
   contractConfig: [
-    { name: 'Sprzedaż towaru', payout: 25000 },
-    { name: 'Haracz', payout: 15000 },
-    { name: 'Przerzut auta', payout: 20000 },
-    { name: 'Napad na sklep', payout: 10000 },
-    { name: 'sigma', payout: 50000 },
     { name: 'Inne (opisz poniżej)', payout: 5000 },
   ],
 
   // --- EDYTUJ HISTORIĘ ZMIAN (CHANGELOG) ---
   changelog: [
+     { 
+      version: 'v1.5.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Dodano nowe role!',
+      ] 
     { 
       version: 'v1.4.0', 
       date: '2025-07-18', 
