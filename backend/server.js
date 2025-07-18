@@ -26,6 +26,7 @@ const initialConfig = {
     { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Jarek Fangss', staticId: '25243', role: 'V-lider', password: 'Jarek@fangs' },
     { nickname: 'Scott Boner', staticId: '83913', role: 'Zarząd', password: '1234' },
+    { nickname: 'Genki Teshmio', staticId: '125852', role: 'Obywatel', password: 'superauto123' },
     { nickname: 'test', staticId: '111111', role: 'Obywatel', password: '1111' },
   ],
 
