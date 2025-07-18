@@ -47,6 +47,14 @@ const initialConfig = {
     { name: 'Inne (opisz poniżej)', payout: 5000 },
   ],
   changelog: [
+        { 
+      version: 'v1.6.0', 
+      date: '2025-07-18', 
+      changes: [
+        'W wersji 2.0.0 bedzie juz wszystko dzialac poprawnie! Milego!'
+        'Naprawiono dodawanie zdjec!'
+          
+    },
     { 
       version: 'v1.5.0', 
       date: '2025-07-18', 
