@@ -22,18 +22,20 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const initialConfig = {
   // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
   users: [
-    { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: '1234' },
-    { nickname: 'Rysiek', staticId: '12345', role: 'member', password: '1234' },
-    { nickname: 'Zdzichu', staticId: '54321', role: 'member', password: '1234' },
-    { nickname: 'Mirek', staticId: '98765', role: 'admin', password: '1234' },
+    { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: 'Franiu225!' },
+    { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
+    { nickname: 'Jarek Fangss', staticId: '25243', role: 'V-lider', password: 'Jarek@fangs' },
+    { nickname: 'Scott Boner', staticId: '83913', role: 'Zarząd', password: '1234' },
+    { nickname: 'test', staticId: '111111', role: 'Obywatel', password: '1111' },
     // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
   ],
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
       { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'admin', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: false },
-      { name: 'member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
+      { name: 'V-lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Zarząd', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
+      { name: 'Obywatel', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
