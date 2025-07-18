@@ -26,7 +26,7 @@ const initialConfig = {
     { nickname: 'Tylor Smith', staticId: '63038', role: 'V-lider', password: 'lubiewdupe8321' },
     { nickname: 'Jarek Fangss', staticId: '25243', role: 'V-lider', password: 'Jarek@fangs' },
     { nickname: 'Scott Boner', staticId: '83913', role: 'Zarząd', password: '1234' },
-    { nickname: 'test', staticId: '111111', role: 'Obywatel', password: '1111' },
+    { nickname: 'test', staticId: '111111', role: 'Rekrut', password: '1111' },
     // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
   ],
 
@@ -35,7 +35,8 @@ const initialConfig = {
       { name: 'Lider', priority: 1, canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
       { name: 'V-lider', priority: 2, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
       { name: 'Zarząd', priority: 3, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Obywatel', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
+      { name: 'Rekruter', priority: 4, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: false },
+      { name: 'Rekrut', priority: 10, canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false },
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
