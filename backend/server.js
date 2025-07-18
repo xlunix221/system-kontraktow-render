@@ -56,9 +56,11 @@ const initialConfig = {
 const initializeDatabase = async () => {
   const client = await db.pool.connect();
   try {
+    // Sprawdź, czy tabela 'users' istnieje. Jeśli tak, baza jest już zainicjowana.
     await client.query("SELECT 'users'::regclass");
     console.log('Database already initialized.');
   } catch (error) {
+    // Jeśli tabela nie istnieje, stwórz cały schemat i wstaw dane początkowe.
     console.log('Database not initialized. Creating schema...');
     
     const schema = `
