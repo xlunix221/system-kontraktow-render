@@ -23,17 +23,17 @@ const initialConfig = {
   // --- EDYTUJ LISTĘ UŻYTKOWNIKÓW ---
   users: [
     { nickname: 'Gregory Tyler', staticId: '10001', role: 'Lider', password: '1234' },
-    { nickname: 'Scott Boner', staticId: '83913', role: 'V-lider', password: '1234' },
-    { nickname: 'Scott Boner1', staticId: '83913', role: 'Member', password: '1234' },
-    // Aby dodać nowego użytkownika, skopiuj powyższą linijkę i zmień dane.
+    { nickname: 'Rysiek', staticId: '12345', role: 'member', password: '1234' },
+    { nickname: 'Zdzichu', staticId: '54321', role: 'member', password: '1234' },
+    { nickname: 'Mirek', staticId: '98765', role: 'admin', password: '1234' },
     // Przykład: { nickname: 'NowyKolega', staticId: '55555', role: 'member', password: 'nowehaslo' },
   ],
 
   // --- EDYTUJ ROLE I ICH UPRAWNIENIA ---
   availableRoles: [
       { name: 'Lider', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: true },
-      { name: 'V-lider', canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true },
-      { name: 'Member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
+      { name: 'admin', canViewThreads: true, isThreadVisible: false, canApprove: true, canReject: false },
+      { name: 'member', canViewThreads: false, isThreadVisible: true, canApprove: false, canReject: false }
   ],
 
   // --- EDYTUJ TYPY KONTRAKTÓW I WYPŁATY ---
@@ -58,12 +58,10 @@ const initialConfig = {
 const initializeDatabase = async () => {
   const client = await db.pool.connect();
   try {
-    console.log('Force re-initializing database with new config...');
+    console.log('Initializing database...');
     
-    // Czyszczenie starych tabel
     await client.query('DROP TABLE IF EXISTS users, contracts, contract_config, available_roles;');
 
-    // Tworzenie nowego schematu
     const schema = `
       CREATE TABLE users (id SERIAL PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, staticId TEXT, role TEXT, password TEXT);
       CREATE TABLE contracts (id SERIAL PRIMARY KEY, userId INTEGER, userNickname TEXT, contractType TEXT, detailedDescription TEXT, imageUrl TEXT, timestamp TEXT, isApproved BOOLEAN DEFAULT false, isRejected BOOLEAN DEFAULT false, payoutAmount REAL, rejectionReason TEXT);
@@ -72,7 +70,6 @@ const initializeDatabase = async () => {
     `;
     await client.query(schema);
 
-    // Wstawianie nowych danych
     for (const user of initialConfig.users) {
         const hashedPassword = await bcrypt.hash(user.password, 10);
         await client.query('INSERT INTO users (nickname, staticId, role, password) VALUES ($1, $2, $3, $4)', 
@@ -95,15 +92,31 @@ const initializeDatabase = async () => {
 };
 
 // Middleware do weryfikacji tokenu JWT
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (token == null) return res.sendStatus(401);
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
         if (err) return res.sendStatus(403);
-        req.user = user;
-        next();
+        
+        try {
+            const userResult = await db.query('SELECT role FROM users WHERE id = $1', [decoded.id]);
+            if (userResult.rows.length === 0) return res.sendStatus(403);
+            const userRole = userResult.rows[0].role;
+            
+            const roleResult = await db.query('SELECT * FROM available_roles WHERE name = $1', [userRole]);
+            if (roleResult.rows.length === 0) return res.sendStatus(403);
+
+            req.user = {
+                id: decoded.id,
+                role: userRole,
+                permissions: roleResult.rows[0]
+            };
+            next();
+        } catch (dbErr) {
+            res.status(500).send(dbErr.message);
+        }
     });
 };
 
@@ -117,8 +130,8 @@ app.post('/api/login', async (req, res) => {
         if (!user) return res.status(400).send('Cannot find user');
 
         if (await bcrypt.compare(password, user.password)) {
-            const accessToken = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
-            res.json({ token: accessToken, user });
+            const accessToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1d' });
+            res.json({ token: accessToken });
         } else {
             res.status(401).send('Not Allowed');
         }
@@ -146,11 +159,13 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/contracts', authenticateToken, async (req, res) => {
-    const { userId, userNickname, contractType, detailedDescription, imageUrl } = req.body;
+    if (!req.user.permissions.isthreadvisible) return res.status(403).send('Brak uprawnień do dodawania kontraktów.');
+
+    const { userNickname, contractType, detailedDescription, imageUrl } = req.body;
     const timestamp = new Date().toISOString();
     try {
         await db.query('INSERT INTO contracts (userid, usernickname, contracttype, detaileddescription, imageurl, timestamp) VALUES ($1, $2, $3, $4, $5, $6)',
-        [userId, userNickname, contractType, detailedDescription, imageUrl, timestamp]);
+        [req.user.id, userNickname, contractType, detailedDescription, imageUrl, timestamp]);
         res.status(201).json({ success: true });
     } catch (err) {
         res.status(500).send(err.message);
@@ -161,9 +176,11 @@ app.put('/api/contracts/:id/:action', authenticateToken, async (req, res) => {
     const { id, action } = req.params;
     try {
         if (action === 'approve') {
+            if (!req.user.permissions.canapprove) return res.status(403).send('Brak uprawnień do zatwierdzania.');
             const { payoutAmount } = req.body;
             await db.query('UPDATE contracts SET isapproved = true, isrejected = false, payoutamount = $1 WHERE id = $2', [payoutAmount, id]);
         } else if (action === 'reject') {
+            if (!req.user.permissions.canreject) return res.status(403).send('Brak uprawnień do odrzucania.');
             const { rejectionReason } = req.body;
             await db.query('UPDATE contracts SET isrejected = true, isapproved = false, rejectionreason = $1 WHERE id = $2', [rejectionReason, id]);
         } else {
