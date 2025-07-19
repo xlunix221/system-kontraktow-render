@@ -91,9 +91,9 @@ const LoginPage = ({ onLogin }) => {
 };
 
 const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserId, availableRoles, setView, view, onMarkNotificationsAsRead, notifications, onOpenPasswordModal, changelog }) => {
-  const [isThreadsVisible, setIsThreadsVisible] = useState(true);
-  const [isMembersVisible, setIsMembersVisible] = useState(true);
-  const [isChangelogVisible, setIsChangelogVisible] = useState(false); // Nowy stan dla changeloga
+  const [isThreadsVisible, setIsThreadsVisible] = useState(false);
+  const [isMembersVisible, setIsMembersVisible] = useState(false);
+  const [isChangelogVisible, setIsChangelogVisible] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
@@ -117,6 +117,29 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
     <div className="flex flex-col w-64 h-screen bg-gray-900 text-white border-r border-violet-500/20">
       <div className="px-4 py-3 text-xl font-bold border-b border-violet-500/20" style={styles.mainGradientText}>Panel Rodziny</div>
       <div className="flex-1 overflow-y-auto px-2">
+        
+        {/* === SEKCJA HISTORII ZMIAN (PRZENIESIONA NA GÓRĘ) === */}
+        <div className="py-2 border-b border-violet-500/10">
+            <button onClick={() => setIsChangelogVisible(!isChangelogVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
+                <span>Historia Zmian</span>
+                <ChevronDownIcon className={isChangelogVisible ? 'rotate-180' : ''} />
+            </button>
+            {isChangelogVisible && (
+                <div className="mt-1 space-y-4 px-3 py-2 text-xs">
+                    {(changelog || []).map((entry, index) => (
+                        <div key={index}>
+                            <p className="font-bold text-violet-300">{entry.version} <span className="font-normal text-gray-400">- {new Date(entry.date).toLocaleDateString('pl-PL')}</span></p>
+                            <ul className="mt-1 list-disc list-inside text-gray-400 space-y-1">
+                                {entry.changes.map((change, cIndex) => (
+                                    <li key={cIndex}>{change}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+
         <nav className="py-2 space-y-1 border-b border-violet-500/10">
             <NavButton icon={<HomeIcon/>} label="Pulpit" targetView="dashboard" />
             <NavButton icon={<ListIcon/>} label="Wątki" targetView="threads" />
@@ -149,28 +172,6 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
                     {users.map(user => (
                         <div key={user.id} className="w-full text-left px-3 py-1 text-sm text-gray-400 flex items-center">
                            <span className='mr-2'>•</span> <span>{user.nickname}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-        
-        {/* === NOWA SEKCJA HISTORII ZMIAN (CHANGELOG) === */}
-        <div className="py-2 border-t border-violet-500/10">
-            <button onClick={() => setIsChangelogVisible(!isChangelogVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
-                <span>Historia Zmian</span>
-                <ChevronDownIcon className={isChangelogVisible ? 'rotate-180' : ''} />
-            </button>
-            {isChangelogVisible && (
-                <div className="mt-1 space-y-4 px-3 py-2 text-xs">
-                    {(changelog || []).map((entry, index) => (
-                        <div key={index}>
-                            <p className="font-bold text-violet-300">{entry.version} <span className="font-normal text-gray-400">- {new Date(entry.date).toLocaleDateString('pl-PL')}</span></p>
-                            <ul className="mt-1 list-disc list-inside text-gray-400 space-y-1">
-                                {entry.changes.map((change, cIndex) => (
-                                    <li key={cIndex}>{change}</li>
-                                ))}
-                            </ul>
                         </div>
                     ))}
                 </div>
