@@ -92,6 +92,7 @@ const LoginPage = ({ onLogin }) => {
 
 const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserId, availableRoles, setView, view, onMarkNotificationsAsRead, notifications, onOpenPasswordModal }) => {
   const [isThreadsVisible, setIsThreadsVisible] = useState(true);
+  const [isMembersVisible, setIsMembersVisible] = useState(true); // Nowy stan dla listy członków
   const [showNotifications, setShowNotifications] = useState(false);
 
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
@@ -121,6 +122,7 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             {currentUser.role === '[7] Lider' && <NavButton icon={<HistoryIcon/>} label="Historia Akcji" targetView="logs" />}
         </nav>
         
+        {/* === SEKCJA WĄTKÓW (BEZ ZMIAN) === */}
         <div className="py-2">
             <button onClick={() => setIsThreadsVisible(!isThreadsVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
                 <span>Wątki</span>
@@ -136,6 +138,24 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
                 </div>
             )}
         </div>
+
+        {/* === NOWA SEKCJA CZŁONKÓW === */}
+        <div className="py-2 border-t border-violet-500/10">
+            <button onClick={() => setIsMembersVisible(!isMembersVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
+                <span>Członkowie</span>
+                <ChevronDownIcon className={isMembersVisible ? 'rotate-180' : ''} />
+            </button>
+            {isMembersVisible && (
+                <div className="mt-1 space-y-1">
+                    {users.map(user => (
+                        <div key={user.id} className="w-full text-left px-3 py-1 text-sm text-gray-400 flex items-center">
+                           <span className='mr-2'>•</span> <span>{user.nickname}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+
       </div>
       <div className="p-2 border-t border-violet-500/20">
         <div className="flex items-center justify-between">
