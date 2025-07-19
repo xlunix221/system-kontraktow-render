@@ -90,9 +90,10 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserId, availableRoles, setView, view, onMarkNotificationsAsRead, notifications, onOpenPasswordModal }) => {
+const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserId, availableRoles, setView, view, onMarkNotificationsAsRead, notifications, onOpenPasswordModal, changelog }) => {
   const [isThreadsVisible, setIsThreadsVisible] = useState(true);
-  const [isMembersVisible, setIsMembersVisible] = useState(true); // Nowy stan dla listy członków
+  const [isMembersVisible, setIsMembersVisible] = useState(true);
+  const [isChangelogVisible, setIsChangelogVisible] = useState(false); // Nowy stan dla changeloga
   const [showNotifications, setShowNotifications] = useState(false);
 
   const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
@@ -122,7 +123,6 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             {currentUser.role === '[7] Lider' && <NavButton icon={<HistoryIcon/>} label="Historia Akcji" targetView="logs" />}
         </nav>
         
-        {/* === SEKCJA WĄTKÓW (BEZ ZMIAN) === */}
         <div className="py-2">
             <button onClick={() => setIsThreadsVisible(!isThreadsVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
                 <span>Wątki</span>
@@ -139,7 +139,6 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             )}
         </div>
 
-        {/* === NOWA SEKCJA CZŁONKÓW === */}
         <div className="py-2 border-t border-violet-500/10">
             <button onClick={() => setIsMembersVisible(!isMembersVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
                 <span>Członkowie</span>
@@ -150,6 +149,28 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
                     {users.map(user => (
                         <div key={user.id} className="w-full text-left px-3 py-1 text-sm text-gray-400 flex items-center">
                            <span className='mr-2'>•</span> <span>{user.nickname}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+        
+        {/* === NOWA SEKCJA HISTORII ZMIAN (CHANGELOG) === */}
+        <div className="py-2 border-t border-violet-500/10">
+            <button onClick={() => setIsChangelogVisible(!isChangelogVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
+                <span>Historia Zmian</span>
+                <ChevronDownIcon className={isChangelogVisible ? 'rotate-180' : ''} />
+            </button>
+            {isChangelogVisible && (
+                <div className="mt-1 space-y-4 px-3 py-2 text-xs">
+                    {(changelog || []).map((entry, index) => (
+                        <div key={index}>
+                            <p className="font-bold text-violet-300">{entry.version} <span className="font-normal text-gray-400">- {new Date(entry.date).toLocaleDateString('pl-PL')}</span></p>
+                            <ul className="mt-1 list-disc list-inside text-gray-400 space-y-1">
+                                {entry.changes.map((change, cIndex) => (
+                                    <li key={cIndex}>{change}</li>
+                                ))}
+                            </ul>
                         </div>
                     ))}
                 </div>
@@ -850,6 +871,7 @@ export default function App() {
         view={view} 
         onMarkNotificationsAsRead={handleMarkNotificationsAsRead}
         onOpenPasswordModal={() => setPasswordModalOpen(true)}
+        changelog={changelog}
       />
       <div className="flex-1 flex flex-col">
           {renderView()}
