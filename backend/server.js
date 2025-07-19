@@ -405,5 +405,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
+ // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
 });
