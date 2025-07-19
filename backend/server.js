@@ -30,10 +30,6 @@ const upload = multer({ storage: storage });
 const initialConfig = {
   users: [
     { nickname: 'Gregory Tyler', staticId: '24032', role: '[7] Lider', password: 'Franiu225!' },
-    { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
-    { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
-    { nickname: 'Wladyslaw Bosaki', staticId: '26182', role: '[5] Management', password: '12433216' },
-    { nickname: 'test', staticId: '1111', role: '[1] New Member', password: '1111' }
   ],
   availableRoles: [
     { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true, canDelete: true },
@@ -409,5 +405,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
+  await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
 });
