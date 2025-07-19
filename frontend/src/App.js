@@ -118,7 +118,6 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
       <div className="px-4 py-3 text-xl font-bold border-b border-violet-500/20" style={styles.mainGradientText}>Panel Rodziny</div>
       <div className="flex-1 overflow-y-auto px-2">
         
-        {/* === SEKCJA HISTORII ZMIAN (PRZENIESIONA NA GÓRĘ) === */}
         <div className="py-2 border-b border-violet-500/10">
             <button onClick={() => setIsChangelogVisible(!isChangelogVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
                 <span>Historia Zmian</span>
@@ -170,8 +169,12 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             {isMembersVisible && (
                 <div className="mt-1 space-y-1">
                     {users.map(user => (
-                        <div key={user.id} className="w-full text-left px-3 py-1 text-sm text-gray-400 flex items-center">
-                           <span className='mr-2'>•</span> <span>{user.nickname}</span>
+                        <div key={user.id} className="w-full text-left px-3 py-1 text-sm flex items-start">
+                           <span className='mr-2 text-gray-600'>•</span>
+                           <div>
+                                <span className="text-violet-300 font-medium">{user.nickname}</span>
+                                <span className="ml-2 text-gray-500">({user.staticid})</span>
+                           </div>
                         </div>
                     ))}
                 </div>
