@@ -271,7 +271,6 @@ const ImageModal = ({ imageUrl, onClose }) => {
     return (<div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50" onClick={onClose}><img src={imageUrl} alt="Powiększony dowód" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl shadow-violet-500/30" /></div>);
 };
 
-// --- POPRAWIONY KOMPONENT ---
 const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, onDeleteContract, currentUser, contractConfig, availableRoles, onImageClick, searchTerm, filterStatus }) => {
   // All hooks are now at the top level, before any conditional returns.
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, contractId: null });
@@ -501,9 +500,10 @@ const LogsView = ({ logs }) => (
 );
 
 
-// --- GŁÓWNY KOMPONENT APLIKACJI ---
+// --- GŁÓWNY KOMPONENT APLIKACJI (POPRAWIONY) ---
 
 export default function App() {
+  // Wszystkie hooki muszą być na najwyższym poziomie
   const [appData, setAppData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -513,15 +513,47 @@ export default function App() {
   const [view, setView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [confirmation, setConfirmation] = useState({ isOpen: false, onConfirm: () => {} });
+  const [confirmation, setConfirmation] = useState({ isOpen: false, onConfirm: () => {}, title: '', message: '' });
   const API_URL = '';
+
+  // Hook `useMemo` przeniesiony na górę, przed warunkowe returny
+  const dashboardStats = useMemo(() => {
+      // Zabezpieczenie na wypadek, gdyby dane nie były jeszcze dostępne
+      if (!appData || !appData.contracts) {
+          return { pending: 0, approved: 0, rejected: 0, topPerformers: [] };
+      }
+      const { contracts } = appData;
+      const approved = contracts.filter(c => c.isapproved);
+      const performers = approved.reduce((acc, c) => {
+          acc[c.usernickname] = acc[c.usernickname] || { count: 0, totalpayout: 0 };
+          acc[c.usernickname].count++;
+          acc[c.usernickname].totalpayout += c.payoutamount;
+          return acc;
+      }, {});
+
+      return {
+          pending: contracts.filter(c => !c.isapproved && !c.isrejected).length,
+          approved: approved.length,
+          rejected: contracts.filter(c => c.isrejected).length,
+          topPerformers: Object.entries(performers).map(([name, data]) => ({ usernickname: name, ...data })).sort((a, b) => b.totalpayout - a.totalpayout).slice(0, 5),
+      }
+  }, [appData]);
+
+  const handleLogout = useCallback(() => { 
+      localStorage.removeItem('token'); 
+      setToken(null); 
+      setCurrentUser(null); 
+      setAppData(null);
+      setView('dashboard');
+      setIsLoading(false);
+  }, []);
 
   const fetchData = useCallback(async (currentToken) => {
     if (!currentToken) { setIsLoading(false); return; }
     try {
       const response = await fetch(`${API_URL}/api/data`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
       if (response.status === 401 || response.status === 403) { handleLogout(); return; }
-      if (!response.ok) throw new Error('Failed to fetch');
+      if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
       setAppData(data);
       const decodedToken = JSON.parse(atob(currentToken.split('.')[1]));
@@ -534,7 +566,7 @@ export default function App() {
     } finally {
         setIsLoading(false);
     }
-  }, [activeThreadUserId]);
+  }, [activeThreadUserId, handleLogout]);
   
   useEffect(() => {
       fetchData(token);
@@ -542,30 +574,20 @@ export default function App() {
 
   const handleLogin = async (nickname, password) => {
     setIsLoading(true);
-    const timerPromise = new Promise(resolve => setTimeout(resolve, 1500)); // Shorter delay
+    const timerPromise = new Promise(resolve => setTimeout(resolve, 1500));
     try {
         const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, password }) });
         if (!response.ok) throw new Error('Login failed');
         const { token: newToken } = await response.json();
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        // fetchData will be called by useEffect
     } catch (error) {
         console.error(error);
-        setIsLoading(false); // Stop loading on error
+        setIsLoading(false);
         throw error;
     } finally {
-        await timerPromise; // Wait for timer regardless of success to feel smooth
+        await timerPromise;
     }
-  };
-
-  const handleLogout = () => { 
-      localStorage.removeItem('token'); 
-      setToken(null); 
-      setCurrentUser(null); 
-      setAppData(null);
-      setView('dashboard');
-      setIsLoading(false);
   };
 
   const handleAddContract = async (newContractData) => {
@@ -596,7 +618,7 @@ export default function App() {
       fetchData(token); 
   };
   
-  const handleDeleteContract = async (contractId) => {
+  const handleDeleteContract = (contractId) => {
       setConfirmation({
           isOpen: true,
           title: "Potwierdź usunięcie",
@@ -604,7 +626,7 @@ export default function App() {
           onConfirm: async () => {
               await fetch(`${API_URL}/api/contracts/${contractId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
               fetchData(token);
-              setConfirmation({ isOpen: false, onConfirm: () => {} });
+              setConfirmation({ isOpen: false, onConfirm: () => {}, title: '', message: '' });
           }
       });
   };
@@ -628,7 +650,7 @@ export default function App() {
       await fetch(`${API_URL}/api/admin/users/${userId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(userData) });
       fetchData(token);
   };
-  const onDeleteUser = async (userId) => {
+  const onDeleteUser = (userId) => {
       setConfirmation({
           isOpen: true,
           title: "Potwierdź usunięcie użytkownika",
@@ -636,36 +658,19 @@ export default function App() {
           onConfirm: async () => {
               await fetch(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
               fetchData(token);
-              setConfirmation({ isOpen: false, onConfirm: () => {} });
+              setConfirmation({ isOpen: false, onConfirm: () => {}, title: '', message: '' });
           }
       });
   };
 
-
+  // Warunkowe returny są teraz bezpieczne, bo wszystkie hooki zostały wywołane
   if (isLoading) { return <LoadingScreen />; }
   if (!currentUser || !appData) { return <LoginPage onLogin={handleLogin} />; }
 
+  // Destrukturyzacja danych jest bezpieczna po sprawdzeniu powyższych warunków
   const { users, contracts, contractConfig, availableRoles, changelog, notifications, logs } = appData;
   const activeUser = users.find(u => u.id === activeThreadUserId);
   const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
-
-  const dashboardStats = useMemo(() => {
-      if (!contracts) return { pending: 0, approved: 0, rejected: 0, topPerformers: [] };
-      const approved = contracts.filter(c => c.isapproved);
-      const performers = approved.reduce((acc, c) => {
-          acc[c.usernickname] = acc[c.usernickname] || { count: 0, totalpayout: 0 };
-          acc[c.usernickname].count++;
-          acc[c.usernickname].totalpayout += c.payoutamount;
-          return acc;
-      }, {});
-
-      return {
-          pending: contracts.filter(c => !c.isapproved && !c.isrejected).length,
-          approved: approved.length,
-          rejected: contracts.filter(c => c.isrejected).length,
-          topPerformers: Object.entries(performers).map(([name, data]) => ({ usernickname: name, ...data })).sort((a, b) => b.totalpayout - a.totalpayout).slice(0, 5),
-      }
-  }, [contracts]);
 
   const renderView = () => {
       switch(view) {
@@ -713,7 +718,7 @@ export default function App() {
       <ImageModal imageUrl={zoomedImageUrl} onClose={() => setZoomedImageUrl(null)} />
       <ConfirmationModal 
           isOpen={confirmation.isOpen}
-          onClose={() => setConfirmation({ isOpen: false, onConfirm: () => {} })}
+          onClose={() => setConfirmation({ isOpen: false, onConfirm: () => {}, title: '', message: '' })}
           onConfirm={confirmation.onConfirm}
           title={confirmation.title}
       >
