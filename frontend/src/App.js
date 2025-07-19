@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import creedLogo from './CREED.jpg'; // Upewnij się, że plik CREED.jpg jest w folderze src
+import creedLogo from './CREED.jpg'; 
 
-// --- IKONY ---
+// --- IKONY (SVG Components) ---
 const CheckIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>);
 const XIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
 const ChevronDownIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform duration-300 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>);
@@ -26,7 +26,8 @@ const styles = {
 
 const LoadingScreen = () => (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-        <img src={creedLogo} alt="Creed Logo" className="w-48 h-48 rounded-full animate-pulse" style={styles.purpleGlow} />
+        {/* <img src={creedLogo} alt="Creed Logo" className="w-48 h-48 rounded-full animate-pulse" style={styles.purpleGlow} /> */}
+        <div className="w-48 h-48 rounded-full animate-pulse bg-violet-800" style={styles.purpleGlow}></div>
         <h2 className="mt-6 text-2xl font-bold" style={styles.mainGradientText}>Ładowanie danych...</h2>
         <p className="text-sm text-gray-400">Proszę czekać</p>
     </div>
@@ -122,7 +123,22 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             <NavButton icon={<ListIcon/>} label="Wątki" targetView="threads" />
             {currentUser.role === '[7] Lider' && <NavButton icon={<HistoryIcon/>} label="Historia Akcji" targetView="logs" />}
         </nav>
-        {/* Pozostałe sekcje bez zmian */}
+        
+        <div className="py-2">
+            <button onClick={() => setIsThreadsVisible(!isThreadsVisible)} className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 rounded-md">
+                <span>Wątki</span>
+                <ChevronDownIcon className={isThreadsVisible ? 'rotate-180' : ''} />
+            </button>
+            {isThreadsVisible && (
+                <div className="mt-1 space-y-1">
+                    {usersToDisplayInThreads.map(user => (
+                        <button key={user.id} onClick={() => { onSelectUser(user.id); setView('threads'); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${activeThreadUserId === user.id && view === 'threads' ? 'bg-violet-500/20 text-white' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}>
+                            {user.nickname}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
       </div>
       <div className="p-2 border-t border-violet-500/20">
         <div className="flex items-center justify-between">
@@ -233,32 +249,63 @@ const RejectionModal = ({ isOpen, onClose, onSubmit }) => {
     );
 };
 
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md border border-violet-500/30">
+                <h3 className="text-lg font-semibold text-violet-300 mb-4">{title}</h3>
+                <div className="text-gray-300 mb-6">{children}</div>
+                <div className="mt-4 flex justify-end space-x-2">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors">Anuluj</button>
+                    <button onClick={onConfirm} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors">Potwierdź</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const ImageModal = ({ imageUrl, onClose }) => {
     if (!imageUrl) return null;
     return (<div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50" onClick={onClose}><img src={imageUrl} alt="Powiększony dowód" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl shadow-violet-500/30" /></div>);
 };
 
+// --- POPRAWIONY KOMPONENT ---
 const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejectContract, onDeleteContract, currentUser, contractConfig, availableRoles, onImageClick, searchTerm, filterStatus }) => {
+  // All hooks are now at the top level, before any conditional returns.
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, contractId: null });
   const [hoveredContract, setHoveredContract] = useState(null);
 
-  if (!user) { return (<div className="flex-1 p-6 flex items-center justify-center text-gray-400">Wybierz wątek z listy po lewej stronie.</div>); }
-  
-  const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
-  const handleOpenRejectModal = (contractId) => { setRejectionModal({ isOpen: true, contractId }); };
-  const handleConfirmRejection = (reason) => { onRejectContract(rejectionModal.contractId, reason); setRejectionModal({ isOpen: false, contractId: null }); };
-  
   const filteredContracts = useMemo(() => {
+    // Safeguard: If contracts don't exist yet, return an empty array.
+    if (!contracts) {
+        return [];
+    }
     return contracts
       .filter(c => {
+        if (filterStatus === 'all') return true;
         if (filterStatus === 'pending') return !c.isapproved && !c.isrejected;
         if (filterStatus === 'approved') return c.isapproved;
         if (filterStatus === 'rejected') return c.isrejected;
         return true;
       })
-      .filter(c => (c.usernickname && c.usernickname.toLowerCase().includes(searchTerm.toLowerCase())) || (c.detaileddescription && c.detaileddescription.toLowerCase().includes(searchTerm.toLowerCase())));
+      .filter(c => 
+          (c.usernickname && c.usernickname.toLowerCase().includes(searchTerm.toLowerCase())) || 
+          (c.detaileddescription && c.detaileddescription.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
   }, [contracts, searchTerm, filterStatus]);
 
+  // Now it's safe to return early after all hooks have been called.
+  if (!user) { 
+      return (<div className="flex-1 p-6 flex items-center justify-center text-gray-400">Wybierz wątek z listy po lewej stronie.</div>); 
+  }
+  
+  // This logic runs only if 'user' exists.
+  const currentUserRoleConfig = availableRoles.find(r => r.name === currentUser.role);
+  const handleOpenRejectModal = (contractId) => { setRejectionModal({ isOpen: true, contractId }); };
+  const handleConfirmRejection = (reason) => { onRejectContract(rejectionModal.contractId, reason); setRejectionModal({ isOpen: false, contractId: null }); };
+  
   return (
     <>
       <RejectionModal isOpen={rejectionModal.isOpen} onClose={() => setRejectionModal({ isOpen: false, contractId: null })} onSubmit={handleConfirmRejection} />
@@ -299,9 +346,9 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
                                     onApprove={!contract.isapproved && !contract.isrejected ? () => onApproveContract(contract.id, contract.contracttype) : null}
                                     onReject={!contract.isapproved && !contract.isrejected ? () => handleOpenRejectModal(contract.id) : null}
                                     onDelete={() => onDeleteContract(contract.id)}
-                                    canApprove={currentUserRoleConfig.canapprove}
-                                    canReject={currentUserRoleConfig.canreject}
-                                    canDelete={currentUserRoleConfig.candelete}
+                                    canApprove={currentUserRoleConfig?.canapprove}
+                                    canReject={currentUserRoleConfig?.canreject}
+                                    canDelete={currentUserRoleConfig?.candelete}
                                 />
                               )}
                           </div>
@@ -309,17 +356,23 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
                   )}
               </div>
           </main>
-          {currentUserRoleConfig.isthreadvisible && user.id === currentUser.id && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}
+          {currentUserRoleConfig?.isthreadvisible && user.id === currentUser.id && (<ContractForm onAddContract={onAddContract} contractConfig={contractConfig} />)}
       </div>
     </>
   );
 };
 
 const SettingsView = ({ users, availableRoles, contractConfig, onSaveConfig, onAddUser, onUpdateUser, onDeleteUser, token }) => {
-    const [localUsers, setLocalUsers] = useState(JSON.parse(JSON.stringify(users)));
-    const [localContractConfig, setLocalContractConfig] = useState(JSON.parse(JSON.stringify(contractConfig)));
-    const [localAvailableRoles, setLocalAvailableRoles] = useState(JSON.parse(JSON.stringify(availableRoles)));
+    const [localUsers, setLocalUsers] = useState([]);
+    const [localContractConfig, setLocalContractConfig] = useState([]);
+    const [localAvailableRoles, setLocalAvailableRoles] = useState([]);
     const [newUser, setNewUser] = useState({ nickname: '', staticId: '', role: '[1] New Member', password: '' });
+
+    useEffect(() => {
+        setLocalUsers(JSON.parse(JSON.stringify(users || [])));
+        setLocalContractConfig(JSON.parse(JSON.stringify(contractConfig || [])));
+        setLocalAvailableRoles(JSON.parse(JSON.stringify(availableRoles || [])));
+    }, [users, contractConfig, availableRoles]);
 
     const handleUserChange = (userId, field, value) => { setLocalUsers(localUsers.map(u => u.id === userId ? {...u, [field]: value} : u)); };
     const handleAddUserClick = () => { onAddUser(newUser); setNewUser({ nickname: '', staticId: '', role: '[1] New Member', password: '' }); };
@@ -406,6 +459,33 @@ const SettingsView = ({ users, availableRoles, contractConfig, onSaveConfig, onA
     );
 };
 
+const DashboardView = ({ stats }) => (
+    <div className="flex-1 p-6 bg-gray-800 overflow-y-auto">
+        <h2 className="text-2xl font-bold text-white mb-6" style={styles.purpleGlowText}>Pulpit</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-4 bg-gray-900/70 rounded-lg border border-violet-500/20"><h3 className="text-sm font-medium text-gray-400">Oczekujące</h3><p className="mt-1 text-3xl font-semibold text-white">{stats.pending}</p></div>
+            <div className="p-4 bg-gray-900/70 rounded-lg border border-green-500/20"><h3 className="text-sm font-medium text-gray-400">Zatwierdzone</h3><p className="mt-1 text-3xl font-semibold text-white">{stats.approved}</p></div>
+            <div className="p-4 bg-gray-900/70 rounded-lg border border-red-500/20"><h3 className="text-sm font-medium text-gray-400">Odrzucone</h3><p className="mt-1 text-3xl font-semibold text-white">{stats.rejected}</p></div>
+        </div>
+        <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white mb-4">Najlepsi wykonawcy</h3>
+            <div className="bg-gray-900/70 rounded-lg border border-violet-500/20">
+                <ul className="divide-y divide-gray-700">
+                    {stats.topPerformers.map((performer, index) => (
+                        <li key={index} className="p-4 flex justify-between items-center">
+                            <span className="font-medium text-violet-300">{performer.usernickname}</span>
+                            <div className="text-right">
+                                <p className="text-sm text-gray-400">Zarobiono: <span className="font-semibold text-white">${performer.totalpayout.toLocaleString('pl-PL')}</span></p>
+                                <p className="text-xs text-gray-500">{performer.count} kontraktów</p>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    </div>
+);
+
 const LogsView = ({ logs }) => (
     <div className="flex-1 p-6 bg-gray-800 overflow-y-auto">
         <h2 className="text-2xl font-bold text-white mb-6" style={styles.purpleGlowText}>Historia Akcji</h2>
@@ -426,17 +506,18 @@ const LogsView = ({ logs }) => (
 export default function App() {
   const [appData, setAppData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isLoading, setIsLoading] = useState(true);
   const [activeThreadUserId, setActiveThreadUserId] = useState(null);
   const [zoomedImageUrl, setZoomedImageUrl] = useState(null);
   const [view, setView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [confirmation, setConfirmation] = useState({ isOpen: false, onConfirm: () => {} });
   const API_URL = '';
 
   const fetchData = useCallback(async (currentToken) => {
-    if (!currentToken) { return; }
+    if (!currentToken) { setIsLoading(false); return; }
     try {
       const response = await fetch(`${API_URL}/api/data`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
       if (response.status === 401 || response.status === 403) { handleLogout(); return; }
@@ -450,31 +531,32 @@ export default function App() {
     } catch (error) { 
         console.error("Failed to fetch data:", error); 
         handleLogout(); 
+    } finally {
+        setIsLoading(false);
     }
   }, [activeThreadUserId]);
   
+  useEffect(() => {
+      fetchData(token);
+  }, [token, fetchData]);
+
   const handleLogin = async (nickname, password) => {
     setIsLoading(true);
-    const timerPromise = new Promise(resolve => setTimeout(resolve, 3000));
-    let loginSuccess = false;
+    const timerPromise = new Promise(resolve => setTimeout(resolve, 1500)); // Shorter delay
     try {
         const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, password }) });
         if (!response.ok) throw new Error('Login failed');
         const { token: newToken } = await response.json();
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        await fetchData(newToken);
-        loginSuccess = true;
+        // fetchData will be called by useEffect
     } catch (error) {
         console.error(error);
+        setIsLoading(false); // Stop loading on error
         throw error;
     } finally {
-        if(loginSuccess) {
-            await timerPromise;
-        }
-        setIsLoading(false);
+        await timerPromise; // Wait for timer regardless of success to feel smooth
     }
-    return true;
   };
 
   const handleLogout = () => { 
@@ -483,6 +565,7 @@ export default function App() {
       setCurrentUser(null); 
       setAppData(null);
       setView('dashboard');
+      setIsLoading(false);
   };
 
   const handleAddContract = async (newContractData) => {
@@ -514,10 +597,16 @@ export default function App() {
   };
   
   const handleDeleteContract = async (contractId) => {
-      if (window.confirm('Czy na pewno chcesz trwale usunąć ten kontrakt?')) {
-          await fetch(`${API_URL}/api/contracts/${contractId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-          fetchData(token);
-      }
+      setConfirmation({
+          isOpen: true,
+          title: "Potwierdź usunięcie",
+          message: "Czy na pewno chcesz trwale usunąć ten kontrakt?",
+          onConfirm: async () => {
+              await fetch(`${API_URL}/api/contracts/${contractId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+              fetchData(token);
+              setConfirmation({ isOpen: false, onConfirm: () => {} });
+          }
+      });
   };
 
   const handleMarkNotificationsAsRead = async () => {
@@ -540,10 +629,16 @@ export default function App() {
       fetchData(token);
   };
   const onDeleteUser = async (userId) => {
-      if(window.confirm('Czy na pewno chcesz usunąć tego użytkownika?')) {
-        await fetch(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-        fetchData(token);
-      }
+      setConfirmation({
+          isOpen: true,
+          title: "Potwierdź usunięcie użytkownika",
+          message: "Czy na pewno chcesz usunąć tego użytkownika? Ta akcja jest nieodwracalna.",
+          onConfirm: async () => {
+              await fetch(`${API_URL}/api/admin/users/${userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+              fetchData(token);
+              setConfirmation({ isOpen: false, onConfirm: () => {} });
+          }
+      });
   };
 
 
@@ -614,10 +709,20 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen font-sans bg-gray-800">
+    <div className="flex h-screen font-sans bg-gray-800 text-white">
       <ImageModal imageUrl={zoomedImageUrl} onClose={() => setZoomedImageUrl(null)} />
+      <ConfirmationModal 
+          isOpen={confirmation.isOpen}
+          onClose={() => setConfirmation({ isOpen: false, onConfirm: () => {} })}
+          onConfirm={confirmation.onConfirm}
+          title={confirmation.title}
+      >
+          {confirmation.message}
+      </ConfirmationModal>
       <Sidebar users={users} currentUser={currentUser} onSelectUser={setActiveThreadUserId} onLogout={handleLogout} activeThreadUserId={activeThreadUserId} availableRoles={availableRoles} changelog={changelog} notifications={notifications} setView={setView} view={view} onMarkNotificationsAsRead={handleMarkNotificationsAsRead} />
-      {renderView()}
+      <div className="flex-1 flex flex-col">
+          {renderView()}
+      </div>
     </div>
   );
 }
