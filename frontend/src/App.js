@@ -209,13 +209,9 @@ const ContractForm = ({ onAddContract, contractConfig }) => {
 
 const AdminActions = ({ onApprove, onReject, onDelete, canApprove, canReject, canDelete }) => (
     <div className="mt-4 flex items-center space-x-2">
-        {!onApprove && !onReject ? null : (
-            <>
-                {canApprove && <button onClick={onApprove} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-500 transition-colors hover:shadow-[0_0_15px_rgba(34,197,94,0.7)]"><CheckIcon />Zatwierdź</button>}
-                {canReject && <button onClick={onReject} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors hover:shadow-[0_0_15px_rgba(239,68,68,0.7)]"><XIcon />Odrzuć</button>}
-            </>
-        )}
-        {canDelete && <button onClick={onDelete} className="p-2 text-gray-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"><TrashIcon /></button>}
+        {onApprove && canApprove && <button onClick={onApprove} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-500 transition-colors hover:shadow-[0_0_15px_rgba(34,197,94,0.7)]"><CheckIcon />Zatwierdź</button>}
+        {onReject && canReject && <button onClick={onReject} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-500 transition-colors hover:shadow-[0_0_15px_rgba(239,68,68,0.7)]"><XIcon />Odrzuć</button>}
+        {onDelete && canDelete && <button onClick={onDelete} className="p-2 text-gray-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"><TrashIcon /></button>}
     </div>
 );
 
@@ -260,7 +256,7 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
         if (filterStatus === 'rejected') return c.isrejected;
         return true;
       })
-      .filter(c => c.usernickname.toLowerCase().includes(searchTerm.toLowerCase()) || c.detaileddescription.toLowerCase().includes(searchTerm.toLowerCase()));
+      .filter(c => (c.usernickname && c.usernickname.toLowerCase().includes(searchTerm.toLowerCase())) || (c.detaileddescription && c.detaileddescription.toLowerCase().includes(searchTerm.toLowerCase())));
   }, [contracts, searchTerm, filterStatus]);
 
   return (
