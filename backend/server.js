@@ -30,10 +30,6 @@ const upload = multer({ storage: storage });
 const initialConfig = {
   users: [
     { nickname: 'Gregory Tyler', staticId: '24032', role: '[7] Lider', password: 'Franiu225!' },
-    { nickname: 'Tylor Smith', staticId: '63038', role: '[6] V-lider', password: 'lubiewdupe8321' },
-    { nickname: 'Myster Czapa', staticId: '26856', role: '[6] V-lider', password: 'Jarek@fangs' },
-    { nickname: 'Wladyslaw Bosaki', staticId: '26182', role: '[5] Management', password: '12433216' },
-    { nickname: 'test', staticId: '1111', role: '[1] New Member', password: '1111' }
   ],
   availableRoles: [
     { name: '[7] Lider', priority: 1, canViewThreads: true, isThreadVisible: true, canApprove: true, canReject: true, canDelete: true },
@@ -52,7 +48,7 @@ const initialConfig = {
       version: 'v2.1.0', 
       date: '2025-07-20', 
       changes: [
-        'Dodano możliwość zmiany hasła przez użytkowników w ustawieniach profilu.',
+        'Dodano możliwość zmiany hasła przez użytkownika w panelu.',
       ]
     },
     { 
@@ -63,6 +59,14 @@ const initialConfig = {
         'Dodano Dashboard ze statystykami.',
         'Wprowadzono filtrowanie i wyszukiwanie kontraktów.',
         'Dodano system powiadomień i historię akcji.',
+      ]
+    },
+    { 
+      version: 'v1.6.0', 
+      date: '2025-07-18', 
+      changes: [
+        'Naprawiono dodawanie zdjec!',
+        'Dodano możliwość usuwania wiadomości przez administracje!'
       ]
     },
   ]
@@ -321,42 +325,47 @@ app.get('/api/images/:id', async (req, res) => {
     }
 });
 
-// --- NOWY ENDPOINT DO ZMIANY HASŁA ---
 app.put('/api/user/password', authenticateToken, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
+    const userNickname = req.user.nickname;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Proszę podać obecne i nowe hasło.' });
+    }
 
     try {
-        // 1. Pobierz obecne hasło użytkownika z bazy
+        // Pobierz aktualne hasło użytkownika z bazy
         const userResult = await db.query('SELECT password FROM users WHERE id = $1', [userId]);
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Użytkownik nie znaleziony." });
+            return res.status(404).send('User not found');
         }
-        const hashedPassword = userResult.rows[0].password;
+        const user = userResult.rows[0];
 
-        // 2. Porównaj podane obecne hasło z hasłem w bazie
-        const isMatch = await bcrypt.compare(currentPassword, hashedPassword);
+        // Porównaj podane obecne hasło z hasłem w bazie
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Obecne hasło jest nieprawidłowe." });
+            return res.status(403).json({ success: false, message: 'Obecne hasło jest nieprawidłowe.' });
         }
 
-        // 3. Hashuj i zaktualizuj nowe hasło
-        const newHashedPassword = await bcrypt.hash(newPassword, 10);
-        await db.query('UPDATE users SET password = $1 WHERE id = $2', [newHashedPassword, userId]);
+        // Hashuj nowe hasło
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-        // 4. Zapisz log
-        await createLog(req.user.nickname, 'zmienił swoje hasło.');
+        // Zaktualizuj hasło w bazie danych
+        await db.query('UPDATE users SET password = $1 WHERE id = $2', [hashedNewPassword, userId]);
 
-        res.status(200).json({ success: true, message: "Hasło zostało pomyślnie zmienione." });
+        // Zapisz log akcji
+        await createLog(userNickname, 'zmienił swoje hasło.');
 
+        res.status(200).json({ success: true, message: 'Hasło zostało pomyślnie zmienione.' });
     } catch (err) {
-        console.error("Password change error:", err);
-        res.status(500).json({ success: false, message: "Wystąpił błąd serwera." });
+        console.error('Password change error:', err);
+        res.status(500).json({ success: false, message: 'Wystąpił błąd serwera.' });
     }
 });
 
-// --- ENDPOINTY ADMINISTRACYJNE ---
-app.use('/api/admin', authenticateToken, requireLeader);
+// --- NOWE ENDPOINTY ADMINISTRACYJNE ---
+app.use('/api/admin', authenticateToken, requireLeader); // Middleware dla wszystkich ścieżek admina
 
 app.post('/api/admin/users', async (req, res) => {
     const { nickname, staticId, role, password } = req.body;
@@ -401,7 +410,7 @@ app.post('/api/admin/config', async (req, res) => {
     const { availableRoles, contractConfig } = req.body;
     const client = await db.pool.connect();
     try {
-        await client.query('BEGIN');
+        await client.query('BEGIN'); // Start transakcji
         
         await client.query('DELETE FROM available_roles');
         for (const role of availableRoles) {
@@ -414,11 +423,11 @@ app.post('/api/admin/config', async (req, res) => {
             await client.query('INSERT INTO contract_config (name, payout) VALUES ($1, $2)', [config.name, config.payout]);
         }
         
-        await client.query('COMMIT');
+        await client.query('COMMIT'); // Zatwierdź transakcję
         await createLog(req.user.nickname, `zaktualizował konfigurację ról i kontraktów.`);
         res.status(200).json({ success: true });
     } catch (err) {
-        await client.query('ROLLBACK');
+        await client.query('ROLLBACK'); // Wycofaj zmiany w razie błędu
         res.status(500).json({ success: false, message: err.message });
     } finally {
         client.release();
@@ -442,5 +451,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
+ // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
 });
