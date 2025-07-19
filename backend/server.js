@@ -49,6 +49,7 @@ const initialConfig = {
       date: '2025-07-20', 
       changes: [
         'Dodano możliwość zmiany hasła przez użytkownika w panelu.',
+        'Dodano wysuwana liste z wszystkimi użytkownikami w rodzince'
       ]
     },
     { 
