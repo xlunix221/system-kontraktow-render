@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import creedLogo from './CREED.jpg'; 
 
 // --- IKONY (SVG Components) ---
@@ -152,9 +152,6 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
             </button>
             {isThreadsVisible && (
                 <div className="mt-1 space-y-1">
-                    <button onClick={() => { onSelectUser('chat'); setView('threads'); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors flex items-center ${activeThreadUserId === 'chat' && view === 'threads' ? 'bg-violet-500/20 text-white' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}>
-                        <span className="mr-2">💬</span> Czat
-                    </button>
                     {usersToDisplayInThreads.map(user => (
                         <button key={user.id} onClick={() => { onSelectUser(user.id); setView('threads'); }} className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${activeThreadUserId === user.id && view === 'threads' ? 'bg-violet-500/20 text-white' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}>
                             {user.nickname}
@@ -485,63 +482,6 @@ const ThreadView = ({ user, contracts, onAddContract, onApproveContract, onRejec
   );
 };
 
-const ChatView = ({ messages, currentUser, onPostMessage }) => {
-    const [newMessage, setNewMessage] = useState('');
-    const messagesEndRef = useRef(null);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (newMessage.trim()) {
-            onPostMessage(newMessage);
-            setNewMessage('');
-        }
-    };
-
-    return (
-        <div className="flex flex-col flex-1 bg-gray-800">
-            <header className="px-6 py-4 bg-gray-800 border-b-2 border-violet-500/30">
-                <h2 className="text-xl font-semibold text-white">💬 Czat Ogólny</h2>
-                <p className="text-sm text-gray-400">Miejsce na luźne rozmowy i szybką komunikację.</p>
-            </header>
-            <main className="flex-1 p-6 overflow-y-auto">
-                <div className="space-y-4">
-                    {messages.map(msg => (
-                        <div key={msg.id} className={`flex flex-col items-start ${msg.user_id === currentUser.id ? 'items-end' : 'items-start'}`}>
-                            <div className={`p-3 rounded-lg max-w-xl ${msg.user_id === currentUser.id ? 'bg-violet-800' : 'bg-gray-700'}`}>
-                                <p className="font-semibold text-sm text-violet-300">{msg.user_nickname}</p>
-                                <p className="text-white whitespace-pre-wrap">{msg.message}</p>
-                                <p className="text-xs text-gray-400 mt-1 text-right">{new Date(msg.timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</p>
-                            </div>
-                        </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </div>
-            </main>
-            <footer className="p-4 bg-gray-900/70 border-t-2 border-violet-500/30">
-                <form onSubmit={handleSubmit} className="flex space-x-2">
-                    <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Wpisz wiadomość..."
-                        className="flex-1 px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
-                    <button type="submit" className="px-4 py-2 font-semibold text-white bg-violet-600 rounded-md hover:bg-violet-500 transition-colors">Wyślij</button>
-                </form>
-            </footer>
-        </div>
-    );
-};
-
 const SettingsView = ({ users, availableRoles, contractConfig, onSaveConfig, onAddUser, onUpdateUser, onDeleteUser, token }) => {
     const [localUsers, setLocalUsers] = useState([]);
     const [localContractConfig, setLocalContractConfig] = useState([]);
@@ -677,7 +617,7 @@ const LogsView = ({ logs }) => (
 );
 
 
-// --- GŁÓWNY KOMPONENT APLIKACJI ---
+// --- GŁÓWNY KOMPONENT APLIKACJI (POPRAWIONY) ---
 
 export default function App() {
   const [appData, setAppData] = useState(null);
@@ -732,7 +672,7 @@ export default function App() {
       const data = await response.json();
       setAppData(data);
       const decodedToken = JSON.parse(atob(currentToken.split('.')[1]));
-      const userFromToken = data.users.find(u => u.id == decodedToken.id);
+      const userFromToken = data.users.find(u => u.id === decodedToken.id);
       setCurrentUser(userFromToken);
       if (!activeThreadUserId && userFromToken) { setActiveThreadUserId(userFromToken.id); }
     } catch (error) { 
@@ -779,23 +719,6 @@ export default function App() {
         console.error("Failed to add contract:", error);
         alert("Wystąpił błąd podczas dodawania kontraktu.");
     }
-  };
-
-  const handlePostChatMessage = async (message) => {
-      try {
-          await fetch(`${API_URL}/api/chat`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ message })
-          });
-          fetchData(token);
-      } catch (error) {
-          console.error("Failed to post chat message:", error);
-          alert("Wystąpił błąd podczas wysyłania wiadomości.");
-      }
   };
 
   const handleApproveContract = async (contractId, contractType) => { 
@@ -879,18 +802,15 @@ export default function App() {
   if (isLoading) { return <LoadingScreen />; }
   if (!currentUser || !appData) { return <LoginPage onLogin={handleLogin} />; }
 
-  const { users, contracts, contractConfig, availableRoles, changelog, notifications, logs, chat } = appData;
-  const activeUser = users.find(u => u.id == activeThreadUserId);
-  const activeContracts = contracts.filter(c => c.userid == activeThreadUserId);
+  const { users, contracts, contractConfig, availableRoles, changelog, notifications, logs } = appData;
+  const activeUser = users.find(u => u.id === activeThreadUserId);
+  const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
 
   const renderView = () => {
       switch(view) {
           case 'dashboard':
               return <DashboardView stats={dashboardStats} />;
           case 'threads':
-              if (activeThreadUserId === 'chat') {
-                  return <ChatView messages={chat || []} currentUser={currentUser} onPostMessage={handlePostChatMessage} />;
-              }
               return (
                 <div className="flex flex-col flex-1 bg-gray-800">
                     <div className="p-4 border-b-2 border-violet-500/30">
@@ -950,7 +870,7 @@ export default function App() {
         onLogout={handleLogout} 
         activeThreadUserId={activeThreadUserId} 
         availableRoles={availableRoles} 
-        notifications={notifications || []} 
+        notifications={notifications} 
         setView={setView} 
         view={view} 
         onMarkNotificationsAsRead={handleMarkNotificationsAsRead}
