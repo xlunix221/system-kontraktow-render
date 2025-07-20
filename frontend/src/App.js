@@ -732,7 +732,7 @@ export default function App() {
       const data = await response.json();
       setAppData(data);
       const decodedToken = JSON.parse(atob(currentToken.split('.')[1]));
-      const userFromToken = data.users.find(u => u.id === decodedToken.id);
+      const userFromToken = data.users.find(u => u.id == decodedToken.id);
       setCurrentUser(userFromToken);
       if (!activeThreadUserId && userFromToken) { setActiveThreadUserId(userFromToken.id); }
     } catch (error) { 
