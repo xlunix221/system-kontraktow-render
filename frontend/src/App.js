@@ -677,7 +677,7 @@ const LogsView = ({ logs }) => (
 );
 
 
-// --- GŁÓWNY KOMPONENT APLIKACJI (POPRAWIONY) ---
+// --- GŁÓWNY KOMPONENT APLIKACJI ---
 
 export default function App() {
   const [appData, setAppData] = useState(null);
@@ -880,8 +880,8 @@ export default function App() {
   if (!currentUser || !appData) { return <LoginPage onLogin={handleLogin} />; }
 
   const { users, contracts, contractConfig, availableRoles, changelog, notifications, logs, chat } = appData;
-  const activeUser = users.find(u => u.id === activeThreadUserId);
-  const activeContracts = contracts.filter(c => c.userid === activeThreadUserId);
+  const activeUser = users.find(u => u.id == activeThreadUserId);
+  const activeContracts = contracts.filter(c => c.userid == activeThreadUserId);
 
   const renderView = () => {
       switch(view) {
