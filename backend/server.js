@@ -45,6 +45,13 @@ const initialConfig = {
   ],
   changelog: [
     { 
+      version: 'v2.2.0', 
+      date: '2025-07-20', 
+      changes: [
+        'Dodano ogólny czat dla wszystkich członków rodziny.',
+      ]
+    },
+    { 
       version: 'v2.1.0', 
       date: '2025-07-20', 
       changes: [
@@ -86,7 +93,7 @@ const initializeDatabase = async () => {
   try {
     console.log('Initializing database...');
     
-    await client.query('DROP TABLE IF EXISTS users, contracts, contract_config, available_roles, action_logs, notifications;');
+    await client.query('DROP TABLE IF EXISTS users, contracts, contract_config, available_roles, action_logs, notifications, chat_messages;');
 
     const schema = `
       CREATE TABLE users (id SERIAL PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, staticId TEXT, role TEXT, password TEXT);
@@ -108,6 +115,13 @@ const initializeDatabase = async () => {
       CREATE TABLE available_roles (name TEXT PRIMARY KEY, priority INTEGER, canViewThreads BOOLEAN, isThreadVisible BOOLEAN, canApprove BOOLEAN, canReject BOOLEAN, canDelete BOOLEAN);
       CREATE TABLE action_logs (id SERIAL PRIMARY KEY, timestamp TIMESTAMPTZ DEFAULT NOW(), actor_nickname TEXT, action_description TEXT);
       CREATE TABLE notifications (id SERIAL PRIMARY KEY, user_id INTEGER, message TEXT, is_read BOOLEAN DEFAULT false, timestamp TIMESTAMPTZ DEFAULT NOW());
+      CREATE TABLE chat_messages (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          user_nickname TEXT NOT NULL,
+          message TEXT NOT NULL,
+          timestamp TIMESTAMPTZ DEFAULT NOW()
+      );
     `;
     await client.query(schema);
 
@@ -216,6 +230,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
         const contractConfigRes = await db.query("SELECT * FROM contract_config");
         const availableRolesRes = await db.query("SELECT * FROM available_roles ORDER BY priority ASC");
         const notificationsRes = await db.query("SELECT * FROM notifications WHERE user_id = $1 AND is_read = false ORDER BY timestamp DESC", [req.user.id]);
+        const chatRes = await db.query("SELECT * FROM chat_messages ORDER BY timestamp ASC");
         
         let logsRes = { rows: [] };
         if (req.user.role === '[7] Lider') {
@@ -229,7 +244,8 @@ app.get('/api/data', authenticateToken, async (req, res) => {
             availableRoles: availableRolesRes.rows,
             changelog: initialConfig.changelog,
             notifications: notificationsRes.rows,
-            logs: logsRes.rows
+            logs: logsRes.rows,
+            chat: chatRes.rows
         });
     } catch (err) {
         res.status(500).send(err.message);
@@ -255,6 +271,25 @@ app.post('/api/contracts', authenticateToken, upload.single('image'), async (req
         
         await createLog(req.user.nickname, `dodał nowy kontrakt typu "${contractType}".`);
         
+        res.status(201).json({ success: true });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+app.post('/api/chat', authenticateToken, async (req, res) => {
+    const { message } = req.body;
+    const { id: userId, nickname: userNickname } = req.user;
+
+    if (!message || message.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Message cannot be empty.' });
+    }
+
+    try {
+        await db.query(
+            'INSERT INTO chat_messages (user_id, user_nickname, message) VALUES ($1, $2, $3)',
+            [userId, userNickname, message]
+        );
         res.status(201).json({ success: true });
     } catch (err) {
         res.status(500).send(err.message);
