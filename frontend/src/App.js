@@ -141,7 +141,7 @@ const Sidebar = ({ users, currentUser, onSelectUser, onLogout, activeThreadUserI
 
         <nav className="py-2 space-y-1 border-b border-violet-500/10">
             <NavButton icon={<HomeIcon/>} label="Pulpit" targetView="dashboard" />
-            <NavButton icon={<ListIcon/>} label="Wątki" targetView="threads" />
+            <NavButton icon={<ListIcon/>} label="Twój Wątek" targetView="threads" />
             {currentUser.role === '[7] Lider' && <NavButton icon={<HistoryIcon/>} label="Historia Akcji" targetView="logs" />}
         </nav>
         
@@ -963,3 +963,4 @@ export default function App() {
     </div>
   );
 }
+
