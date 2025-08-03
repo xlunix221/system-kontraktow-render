@@ -45,6 +45,13 @@ const initialConfig = {
   ],
   changelog: [
     { 
+      version: 'v2.2.1', 
+      date: '2025-08-04', 
+      changes: [
+        'Naprawiono błędy wizualne!',
+      ]
+    },
+    { 
       version: 'v2.2.0', 
       date: '2025-07-20', 
       changes: [
@@ -489,3 +496,4 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
  // await initializeDatabase(); // Zakomentuj tę linię po pierwszym pomyślnym uruchomieniu!
 });
+
